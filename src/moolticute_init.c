@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "moolticute.h"
 #include "moolticute_cb_not_found.h"
+#include "moolticute_cb_connected.h"
 #include <libwebsockets.h>
 
 struct moolticute_ctx mContext;  /// the moolticute context
@@ -53,6 +54,7 @@ void moolticute_init_ctx()
   mContext.context=lws_create_context( &info );
 
   // register all callbacks here
-  moolticute_register_cb("",moolticute_cb_not_found);
-
+  moolticute_register_cb("",&moolticute_cb_not_found);
+  moolticute_register_cb("mp_connected", &moolticute_cb_connect);
+  moolticute_register_cb("mp_disconnected", &moolticute_cb_disconnect);
 }
