@@ -172,6 +172,6 @@ void moolticute_init_ctx();   /// initialize the context
 int  moolticute_connect();    /// connect to the moolticuted and fetch initial information
 
 
-
+int moolticute_request_random_number(); /// request random numbers from mooltipass device
 
 #endif
