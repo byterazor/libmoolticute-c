@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute_cb_connected.h"
 #include "moolticute_cb_status_changed.h"
 #include "moolticute_cb_param_changed.h"
+#include "moolticute_cb_version_changed.h"
 #include <libwebsockets.h>
 
 struct moolticute_ctx mContext;  /// the moolticute context
@@ -61,4 +62,5 @@ void moolticute_init_ctx()
   moolticute_register_cb("mp_disconnected", &moolticute_cb_disconnect);
   moolticute_register_cb("status_changed", &moolticute_cb_status_changed);
   moolticute_register_cb("param_changed", &moolticute_cb_param_changed);
+  moolticute_register_cb("version_changed", &moolticute_cb_version_changed);
 }
