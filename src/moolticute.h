@@ -61,6 +61,8 @@ struct mooltipass_status
 struct mooltipass_card
 {
   char id[CARD_ID_SIZE];
+  int credentialsDbChangeNumber;
+  int dataDbChangeNumber;
 };
 
 /**
