@@ -101,6 +101,13 @@ struct mooltipass_parameters
   int delay_after_key;
 };
 
+/**
+* @brief Mooltipass memory management structure
+*/
+struct mooltipass_mm
+{
+  int enabled;
+};
 
 /**
 * @brief Mooltipass Info Structure
@@ -113,6 +120,7 @@ struct mooltipass_info
   struct mooltipass_status status;
   struct mooltipass_card card;
   struct mooltipass_parameters parameters;
+  struct moolitpass_mm mm;
 };
 
 
