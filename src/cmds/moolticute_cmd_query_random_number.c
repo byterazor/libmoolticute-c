@@ -69,6 +69,11 @@ int moolticute_request_random_number(int *randomNumbers)
     return M_ERROR_NOT_CONNECTED;
   }
 
+  if (mContext.status.connected == 0)
+  {
+    return M_ERROR_NO_MOOLTIPASS_DEVICE;
+  }
+
   json_object_object_add(jObj, "msg", json_object_new_string("get_random_numbers"));
   json_str=json_object_to_json_string(jObj);
   msg=malloc(strlen(json_str)+1);
