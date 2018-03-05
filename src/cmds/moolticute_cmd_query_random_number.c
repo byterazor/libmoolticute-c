@@ -29,9 +29,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_RANDOM_NUMBERS 32
 
-int mRandomNumbers[MAX_RANDOM_NUMBERS];
-int mGotRandomNumbers;
+int mRandomNumbers[MAX_RANDOM_NUMBERS];   /// global variable for the requested random numbers
+int mGotRandomNumbers;                    /// identifier signalling the RandomNumbers have been updated
 
+/**
+* @brief callback for the get_random_numbers message
+*/
 void moolticute_cb_get_random_numbers(struct json_object *jObj)
 {
   int i;
@@ -48,7 +51,11 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
   mGotRandomNumbers=1;
 }
 
-
+/**
+* @brief request random numbers from the moolticute daemon
+* @param randomNumbers - array for the random numbers as call by reference, size MAX_RANDOM_NUMBERS = 32
+* @return 0 = everything ok, < 0 ERROR Codes according to moolticute.h
+*/
 int moolticute_request_random_number(int *randomNumbers)
 {
   int i;
@@ -56,6 +63,12 @@ int moolticute_request_random_number(int *randomNumbers)
   const char *json_str;
   char *msg;
   struct json_object *jObj=json_object_new_object();
+
+  if (mContext.connected==0)
+  {
+    return M_ERROR_NOT_CONNECTED;
+  }
+
   json_object_object_add(jObj, "msg", json_object_new_string("get_random_numbers"));
   json_str=json_object_to_json_string(jObj);
   msg=malloc(strlen(json_str)+1);
@@ -77,7 +90,7 @@ int moolticute_request_random_number(int *randomNumbers)
 
   if (timeout == 0)
   {
-    return -1;
+    return M_ERROR_TIMEOUT;
   }
 
   for(i=0; i<MAX_RANDOM_NUMBERS;i++)
