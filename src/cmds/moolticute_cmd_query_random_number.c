@@ -26,10 +26,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../moolticute.h"
 #include <json.h>
 #include <libwebsockets.h>
+#include <stdint.h>
 
 #define MAX_RANDOM_NUMBERS 32
 
-int mRandomNumbers[MAX_RANDOM_NUMBERS];   /// global variable for the requested random numbers
+uint32_t mRandomNumbers[MAX_RANDOM_NUMBERS];   /// global variable for the requested random numbers
 int mGotRandomNumbers;                    /// identifier signalling the RandomNumbers have been updated
 
 /**
@@ -69,7 +70,7 @@ int moolticute_request_random_number(int *randomNumbers)
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.status.connected == 0)
+  if (mContext.info.status.connected == 0)
   {
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
