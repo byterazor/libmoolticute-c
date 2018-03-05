@@ -120,7 +120,7 @@ struct mooltipass_info
   struct mooltipass_status status;
   struct mooltipass_card card;
   struct mooltipass_parameters parameters;
-  struct moolitpass_mm mm;
+  struct mooltipass_mm mm;
 };
 
 
