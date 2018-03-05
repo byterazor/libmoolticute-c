@@ -35,6 +35,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MOOLTICUTE_CMD_SIZE 30    /// the maximum size of moolticute websocket commands in bytes
 
 
+/*
+* ERROR Codes
+*/
+#define M_ERROR_NOT_CONNECTED -1
+#define M_ERROR_TIMEOUT -2
+#define M_ERROR_NO_MOOLTIPASS_DEVICE -3
+
+
 /**
 * @brief Mooltipass Device specific information
 */
