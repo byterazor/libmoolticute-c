@@ -27,6 +27,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <json.h>
 
 /**
+* @brief structure for managing memory allocation within the callback
+*/
+struct buffer
+{
+  unsigned int size;  /// number of the already allocated memory
+  char *buffer;       /// pointer to the allocated memory
+};
+
+
+struct buffer cb_buffer = {0};    /// instantiation of the callback buffer. This is possible here, because we only have one callback
+
+
+/**
 * @brief function called by libwebsockets for some reasons including moolticute messages
 * @param wsi - websocket information
 * @param reason - reason why the callback has been called
@@ -52,7 +65,27 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
         break;
 
       case LWS_CALLBACK_CLIENT_RECEIVE:
-        jobj =json_tokener_parse((char *) in);
+
+        // copy the incoming data in the callback buffer structure
+        // required because json data can be received using multiple
+        // callback calls
+        if (len>0)
+        {
+          cb_buffer.buffer=realloc(cb_buffer.buffer, cb_buffer.size+len);
+          memcpy(( (char *)cb_buffer.buffer)+cb_buffer.size, in, len);
+          cb_buffer.size += len;
+        }
+
+        jobj =json_tokener_parse(cb_buffer.buffer);
+
+        // the full json object has not been received yet
+        // just return
+        if (jobj==NULL)
+        {
+          return 0;
+        }
+
+        // full json object has been received and was parseable
         json_object_object_get_ex(jobj, "msg", &msg);
         cmd=json_object_get_string(msg);
 
@@ -73,7 +106,12 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
           mContext.callbacks[0].cb(jobj);
         }
 
+        // free callback buffer
+        free(cb_buffer.buffer);
+        cb_buffer.buffer=NULL;
+        cb_buffer.size=0;
 
+        // free the json object
         json_object_put(jobj);
         break;
 
