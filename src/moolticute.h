@@ -253,4 +253,5 @@ int  moolticute_connect();    /// connect to the moolticuted and fetch initial i
 
 int moolticute_request_random_number(); /// request random numbers from mooltipass device
 int moolticute_request_device_uid(char key[32]);  /// request device uid from mooltipass device
+int moolticute_start_memory_management(int want_data, int wait); /// initiate memory management mode on the device
 #endif
