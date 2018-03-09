@@ -33,7 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_CALLBACKS 20          /// defines the maximum number of supported callbacks
 #define CARD_ID_SIZE 64           /// the size of the mooltipass card id in bytes
 #define MOOLTICUTE_CMD_SIZE 30    /// the maximum size of moolticute websocket commands in bytes
-
+#define MAX_MOOLTIPASS_SERVICE_NAME 250 /// the maximum length of a moolitpass service name
 
 /*
 * ERROR Codes
@@ -41,7 +41,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define M_ERROR_NOT_CONNECTED -1
 #define M_ERROR_TIMEOUT -2
 #define M_ERROR_NO_MOOLTIPASS_DEVICE -3
-
+#define M_ERROR_DEVICE_LOCKED -4
+#define M_ERROR_ALLOCATING_MEMORY -5
+#define M_ERROR_SERVICE_NAME_TOO_LONG -6
+#define M_ERROR_NO_SERVICE_NAME -7
+#define M_ERROR_NO_MEMORY -8
+#define M_ERROR_NO_SERVICE -9
+#define M_ERROR_NO_CREDENTIAL -10
 
 /**
 * @brief Mooltipass Device specific information
@@ -107,7 +113,51 @@ struct mooltipass_parameters
 struct mooltipass_mm
 {
   int enabled;
+  int updating;                                 /// update process is running
 };
+
+/**
+* @brief structure repesenting the login credentials for a service within the mooltipass device
+*/
+struct mooltipass_credential
+{
+  char address[2];          /// address of the element within the multipass device
+  char date_created[11];    /// creation date of this element as a string
+  char date_last_used[11];  /// date of the last use of this element as a string
+  char *description;        /// pointer to a string describing this element, be sure to allocate enough memory
+  int favourite;            /// is this elemnt a favourite ? 1=yes, 0=no
+  char *login;              /// pointer to the string containing the login name
+  char *password;           /// pointer to the string containing the password
+
+  struct mooltipass_credential *pPrevious; /// previous element in the list
+  struct mooltipass_credential *pNext;     /// next element in the list
+};
+
+/**
+* @brief structure representing a service within the mooltipass device
+*/
+struct mooltipass_service
+{
+  char *name;               /// pointer to the service name
+  int credentials;          /// the number of credentials
+
+  struct mooltipass_credential  *pFirstCredential;  /// pointer to the first credential element
+  struct mooltipass_credential  *pLastCredential;   /// pointer to the last credential element
+
+  struct mooltipass_service *pPrevious;            /// pointer to the previous service element
+  struct mooltipass_service *pNext;                /// pointer to the next service element
+};
+
+/**
+* @brief structure representing the memory within the mooltipass device
+*/
+struct mooltipass_memory
+{
+  int services;                                 /// number of services with the moolipass device
+  struct mooltipass_service *pFirstService;     /// pointer to the first service
+  struct mooltipass_service *pLastService;      /// pointer to the last service
+};
+
 
 /**
 * @brief Mooltipass Info Structure
@@ -121,6 +171,7 @@ struct mooltipass_info
   struct mooltipass_card card;
   struct mooltipass_parameters parameters;
   struct mooltipass_mm mm;
+  struct mooltipass_memory *memory;
 };
 
 
@@ -160,6 +211,7 @@ struct moolticute_ctx
 extern struct moolticute_ctx mContext;   /// only one multipass device is supported, so the moolticute context can be hardcoded, do not access directly
 
 
+
 /*
 * All internal functions
 */
@@ -175,7 +227,7 @@ static struct lws_protocols protocols[] =
 		"moolticute-protocol",
 		callback_moolticute,
 		0,
-		200,
+		2000,
 	},
 	{ NULL, NULL, 0, 0 } /* terminator */
 };
@@ -184,11 +236,21 @@ static struct lws_protocols protocols[] =
 /*
 *   All available functions
 */
+int moolipass_add_credential(struct mooltipass_service *service, const char address[2], const char *date_created, const char *date_used,
+                            const char *description, int favourite, const char *login, const char *password);
+
+int mooltipass_del_credential(struct mooltipass_service *service, struct mooltipass_credential *credential);
+int mooltipass_delete_all_credentials(struct mooltipass_service *service);
+struct mooltipass_service* mooltipass_add_service(struct mooltipass_memory *memory, const char *service_name);
+int mooltipass_del_service(struct mooltipass_memory *memory, struct mooltipass_service *service);
+int mooltipass_delete_all_services(struct mooltipass_memory *memory);
+struct mooltipass_memory * mooltipass_new_memory();
+void mooltipass_free_memory(struct mooltipass_memory *memory);
+
 void moolticute_init_ctx();   /// initialize the context
 int  moolticute_connect();    /// connect to the moolticuted and fetch initial information
 
 
 int moolticute_request_random_number(); /// request random numbers from mooltipass device
 int moolticute_request_device_uid(char key[32]);  /// request device uid from mooltipass device
-
 #endif
