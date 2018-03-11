@@ -31,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute_cb_version_changed.h"
 #include "moolticute_cb_card_db_metadata.h"
 #include "moolticute_cb_memorymgmt_data.h"
+#include "moolticute_cb_memorymgmt_changed.h"
 #include <libwebsockets.h>
 
 struct moolticute_ctx mContext;  /// the moolticute context
@@ -67,4 +68,5 @@ void moolticute_init_ctx()
   moolticute_register_cb("version_changed", &moolticute_cb_version_changed);
   moolticute_register_cb("card_db_metadata", &moolticute_cb_card_db_metadata);
   moolticute_register_cb("memorymgmt_data", &moolticute_cb_memorymgmt_data);
+  moolticute_register_cb("memorymgmt_changed", &moolticute_cb_memorymgmt_changed);
 }

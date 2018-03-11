@@ -13,7 +13,7 @@ LDFLAGS += $(shell pkg-config --libs libwebsockets)
 
 OBJECTS=moolticute_init.o moolticute_register_cb.o moolticute_cb_not_found.o moolticute_callback.o
 OBJECTS+=moolticute_connect.o moolticute_cb_connected.o moolticute_cb_status_changed.o moolticute_cb_param_changed.o
-OBJECTS+=moolticute_cb_version_changed.o moolticute_cb_card_db_metadata.o
+OBJECTS+=moolticute_cb_version_changed.o moolticute_cb_card_db_metadata.o moolticute_cb_memorymgmt_changed.o
 OBJECTS+=cmds/moolticute_cmd_query_random_number.o cmds/moolticute_cmd_request_device_uid.o
 OBJECTS+=mooltipass_memory.o moolticute_cb_memorymgmt_data.o
 
