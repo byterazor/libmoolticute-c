@@ -36,7 +36,7 @@ void moolticute_cb_memorymgmt_changed(struct json_object *jObj)
   }
   else
   {
-    mContext.info.mm.enabled=1;
+    mContext.info.mm.enabled=0;
     if (mContext.info.memory != NULL)
     {
       mooltipass_free_memory(mContext.info.memory);
