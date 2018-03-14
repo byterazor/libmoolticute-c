@@ -16,7 +16,7 @@ OBJECTS+=moolticute_connect.o moolticute_cb_connected.o moolticute_cb_status_cha
 OBJECTS+=moolticute_cb_version_changed.o moolticute_cb_card_db_metadata.o moolticute_cb_memorymgmt_changed.o
 OBJECTS+=cmds/moolticute_cmd_query_random_number.o cmds/moolticute_cmd_request_device_uid.o cmds/moolticute_cmd_start_memory_management.o
 OBJECTS+=mooltipass_memory.o moolticute_cb_memorymgmt_data.o cmds/moolticute_cmd_stop_memory_management.o
-
+OBJECTS+=cmds/moolticute_cmd_request_password.o
 
 .PHONY: clean
 

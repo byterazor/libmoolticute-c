@@ -34,6 +34,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define CARD_ID_SIZE 64           /// the size of the mooltipass card id in bytes
 #define MOOLTICUTE_CMD_SIZE 30    /// the maximum size of moolticute websocket commands in bytes
 #define MAX_MOOLTIPASS_SERVICE_NAME 250 /// the maximum length of a moolitpass service name
+#define MAX_PASSWORD_LENGTH 500   /// Maximum number of chars per password, required for allocationg enough space
 
 /*
 * ERROR Codes
@@ -200,6 +201,8 @@ struct moolticute_ctx
 	int cb_nr;
   unsigned char *transmit_message;
   int transmit_size;
+  char password[MAX_PASSWORD_LENGTH];   /// used by the ask_password callback to return the password
+  int ask_password_running;             /// used for signaling that a password request is running
 
   // connection states
   int tried;                    /// connection has been tried to establish
@@ -257,5 +260,6 @@ int moolticute_request_random_number(); /// request random numbers from mooltipa
 int moolticute_request_device_uid(char key[32]);  /// request device uid from mooltipass device
 int moolticute_start_memory_management(int want_data, int wait); /// initiate memory management mode on the device
 int moolticute_stop_memory_management(int wait); /// stop memory management mode on the mooltipass device
+int moolticute_request_password(const char *service, const char *login, char *password, int timeout);
 
 #endif
