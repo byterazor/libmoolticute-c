@@ -77,9 +77,9 @@ int moolticute_request_random_number(int *randomNumbers)
 
   json_object_object_add(jObj, "msg", json_object_new_string("get_random_numbers"));
   json_str=json_object_to_json_string(jObj);
-  msg=malloc(strlen(json_str)+1);
-  memcpy(msg, json_str, strlen(json_str)+1);
-  mContext.transmit_message=msg;
+  msg=malloc(LWS_PRE+strlen(json_str)+1);
+  memcpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+  mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
 
   // blank random number array
@@ -93,7 +93,7 @@ int moolticute_request_random_number(int *randomNumbers)
 
   while(mGotRandomNumbers==0 && timeout >0)
   {
-    usleep(200);
+    usleep(500);
     timeout--;
   }
 

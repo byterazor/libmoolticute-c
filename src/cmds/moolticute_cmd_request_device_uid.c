@@ -76,9 +76,9 @@ int moolticute_request_device_uid(char key[32])
 
   json_str=json_object_to_json_string(jObj);
 
-  msg=malloc(strlen(json_str)+1);
-  memcpy(msg, json_str, strlen(json_str)+1);
-  mContext.transmit_message=msg;
+  msg=malloc(LWS_PRE+strlen(json_str)+1);
+  memcpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+  mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
 
   // send message to moolticuted
