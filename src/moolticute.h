@@ -198,6 +198,8 @@ struct moolticute_ctx
   // callbacks
   struct moolticute_cb callbacks[MAX_CALLBACKS];
 	int cb_nr;
+  unsigned char *transmit_message;
+  int transmit_size;
 
   // connection states
   int tried;                    /// connection has been tried to establish

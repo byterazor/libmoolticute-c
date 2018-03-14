@@ -56,12 +56,13 @@ int moolticute_stop_memory_management(int wait)
 
   msg=malloc(strlen(json_str)+1);
   strncpy(msg, json_str, strlen(json_str)+1);
+  mContext.transmit_message=msg;
+  mContext.transmit_size=strlen(json_str);
 
-  mContext.info.mm.updating=1;
   // send message to moolticuted
-  lws_write(mContext.wsi, (unsigned char *)msg,strlen(msg), LWS_WRITE_TEXT);
+  lws_callback_on_writable(mContext.wsi);
 
-  while(mContext.info.mm.enabled==0 && wait == 1)
+  while(mContext.info.mm.enabled==1 && wait == 1)
   {
     usleep(100);
   }

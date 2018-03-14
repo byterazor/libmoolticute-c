@@ -38,7 +38,7 @@ struct buffer
 
 struct buffer cb_buffer = {
     0,
-    0
+    NULL
 };    /// instantiation of the callback buffer. This is possible here, because we only have one callback
 
 
@@ -65,7 +65,7 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
       case LWS_CALLBACK_CLIENT_ESTABLISHED:
         mContext.tried=1;
         mContext.connected=1;
-        lws_callback_on_writable( wsi );
+        mContext.ready=1;
         break;
 
       case LWS_CALLBACK_CLIENT_RECEIVE:
@@ -120,7 +120,13 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
         break;
 
       case LWS_CALLBACK_CLIENT_WRITEABLE:
-        mContext.ready=1;
+        if (mContext.transmit_message==NULL)
+        {
+          return 0;
+        }
+        lws_write(mContext.wsi, mContext.transmit_message, mContext.transmit_size,LWS_WRITE_TEXT);
+        mContext.transmit_message=NULL;
+
         break;
       case LWS_CALLBACK_CLOSED:
         break;

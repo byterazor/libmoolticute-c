@@ -60,7 +60,7 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
 int moolticute_request_random_number(int *randomNumbers)
 {
   int i;
-  int timeout=100;
+  int timeout=1000000;
   const char *json_str;
   char *msg;
   struct json_object *jObj=json_object_new_object();
@@ -79,6 +79,8 @@ int moolticute_request_random_number(int *randomNumbers)
   json_str=json_object_to_json_string(jObj);
   msg=malloc(strlen(json_str)+1);
   memcpy(msg, json_str, strlen(json_str)+1);
+  mContext.transmit_message=msg;
+  mContext.transmit_size=strlen(json_str);
 
   // blank random number array
   memset(mRandomNumbers,0,MAX_RANDOM_NUMBERS);
@@ -86,11 +88,12 @@ int moolticute_request_random_number(int *randomNumbers)
 
   //register the callback
   moolticute_register_cb("get_random_numbers", &moolticute_cb_get_random_numbers);
-  lws_write(mContext.wsi, (unsigned char *)msg,strlen(msg), LWS_WRITE_TEXT);
+
+  lws_callback_on_writable(mContext.wsi);
 
   while(mGotRandomNumbers==0 && timeout >0)
   {
-    usleep(100);
+    usleep(200);
     timeout--;
   }
 

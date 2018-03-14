@@ -49,8 +49,8 @@ int moolticute_request_device_uid(char key[32])
   const char *json_str;
   char *msg;
   char key_str[33];
-  struct json_object *jObj=json_object_new_object();
-  struct json_object *data=json_object_new_object();
+  struct json_object *jObj;
+  struct json_object *data;
 
   if (mContext.connected == 0)
   {
@@ -61,6 +61,9 @@ int moolticute_request_device_uid(char key[32])
   {
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
+
+  data=json_object_new_object();
+  jObj=json_object_new_object();
 
   // create a string from the char array
   memset(key_str,0,33);
@@ -75,9 +78,11 @@ int moolticute_request_device_uid(char key[32])
 
   msg=malloc(strlen(json_str)+1);
   memcpy(msg, json_str, strlen(json_str)+1);
+  mContext.transmit_message=msg;
+  mContext.transmit_size=strlen(json_str);
 
   // send message to moolticuted
-  lws_write(mContext.wsi, (unsigned char *)msg,strlen(msg), LWS_WRITE_TEXT);
+  lws_callback_on_writable(mContext.wsi);
 
   return 0;
 }
