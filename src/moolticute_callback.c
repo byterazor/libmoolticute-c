@@ -36,7 +36,10 @@ struct buffer
 };
 
 
-struct buffer cb_buffer = {0};    /// instantiation of the callback buffer. This is possible here, because we only have one callback
+struct buffer cb_buffer = {
+    0,
+    0
+};    /// instantiation of the callback buffer. This is possible here, because we only have one callback
 
 
 /**
@@ -52,6 +55,7 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
 {
   struct json_object *jobj;
   struct json_object *msg;
+  struct json_tokener *tokener=json_tokener_new();
   const char *cmd;
   int i;
   int cb_found=0;
@@ -65,18 +69,18 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
         break;
 
       case LWS_CALLBACK_CLIENT_RECEIVE:
-
         // copy the incoming data in the callback buffer structure
         // required because json data can be received using multiple
         // callback calls
         if (len>0)
         {
+
           cb_buffer.buffer=realloc(cb_buffer.buffer, cb_buffer.size+len);
           memcpy(( (char *)cb_buffer.buffer)+cb_buffer.size, in, len);
           cb_buffer.size += len;
         }
 
-        jobj =json_tokener_parse(cb_buffer.buffer);
+        jobj =json_tokener_parse_ex(tokener,cb_buffer.buffer,cb_buffer.size);
 
         // the full json object has not been received yet
         // just return
