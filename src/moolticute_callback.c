@@ -63,9 +63,7 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
   switch( reason )
     {
       case LWS_CALLBACK_CLIENT_ESTABLISHED:
-        mContext.tried=1;
         mContext.connected=1;
-        mContext.ready=1;
         break;
 
       case LWS_CALLBACK_CLIENT_RECEIVE:
@@ -120,18 +118,19 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
         break;
 
       case LWS_CALLBACK_CLIENT_WRITEABLE:
+        pthread_mutex_lock (&mContext.write_mutex);
+
         if (mContext.transmit_message==NULL)
         {
           return 0;
         }
         lws_write(mContext.wsi, mContext.transmit_message, mContext.transmit_size,LWS_WRITE_TEXT);
         mContext.transmit_message=NULL;
-
+        pthread_mutex_unlock (&mContext.write_mutex);
         break;
       case LWS_CALLBACK_CLOSED:
         break;
       case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-        mContext.tried=1;
         mContext.connected=0;
         break;
 

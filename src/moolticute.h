@@ -195,7 +195,7 @@ struct moolticute_ctx
   struct lws_context *context;  /// libwebsockets context
   struct lws *wsi;              /// libwebsockets connection
   pthread_t thread;             /// threat for managing data reception from websocket service
-
+  pthread_mutex_t write_mutex;  /// mutex for controlling access to this structure from the writing phase
 
   // callbacks
   struct moolticute_cb callbacks[MAX_CALLBACKS];
@@ -206,7 +206,6 @@ struct moolticute_ctx
   int ask_password_running;             /// used for signaling that a password request is running
 
   // connection states
-  int tried;                    /// connection has been tried to establish
   int connected;                /// connection has been initiated
   int ready;                    /// context is ready for transmitting
   int finish;                   /// used for closing everything

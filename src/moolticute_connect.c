@@ -52,6 +52,7 @@ enum moolticute_protocols
 int moolticute_connect()
 {
   struct lws_client_connect_info ccinfo;
+  int timeout=(1e+6/100)*10;
   memset(&ccinfo,0,sizeof(ccinfo));
 
   ccinfo.context = mContext.context;
@@ -62,18 +63,19 @@ int moolticute_connect()
 	ccinfo.origin = "origin";
 	ccinfo.protocol = protocols[PROTOCOL_MOOLTICUTE].name;
   mContext.wsi=lws_client_connect_via_info(&ccinfo);
+  pthread_mutex_init (&mContext.write_mutex, NULL);
   pthread_create(&mContext.thread, NULL, websocket, NULL);
 
   // wait until connection attempt has been made
-  while(mContext.tried==0)
+  while(mContext.connected==0 && timeout >0)
   {
-    usleep(100);
+    usleep(10000);
+    timeout--;
   }
 
-  // return error if not connected
-  if (mContext.connected==0)
+  if (timeout == 0)
   {
-    return -1;
+    return M_ERROR_TIMEOUT;
   }
 
   return 0;
