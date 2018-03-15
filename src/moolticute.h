@@ -160,6 +160,14 @@ struct mooltipass_memory
   struct mooltipass_service *pLastService;      /// pointer to the last service
 };
 
+/**
+* @brief structure for molticute application info
+*/
+struct moolticute_app_info
+{
+  char name[200];
+  char version[200];
+};
 
 /**
 * @brief Mooltipass Info Structure
@@ -210,6 +218,7 @@ struct moolticute_ctx
   int ready;                    /// context is ready for transmitting
   int finish;                   /// used for closing everything
   int finished;                 /// everything has been closed
+  struct moolticute_app_info app; /// remote app information
 };
 
 
@@ -261,5 +270,5 @@ int moolticute_request_device_uid(char key[32]);  /// request device uid from mo
 int moolticute_start_memory_management(int want_data, int wait); /// initiate memory management mode on the device
 int moolticute_stop_memory_management(int wait); /// stop memory management mode on the mooltipass device
 int moolticute_request_password(const char *service, const char *login, char *password, int timeout);
-
+int moolticute_get_application_id(char *name, char *version); /// request the application id from daemon
 #endif
