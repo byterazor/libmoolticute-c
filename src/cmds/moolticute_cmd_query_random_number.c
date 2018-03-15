@@ -50,6 +50,7 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
     mRandomNumbers[i]=json_object_get_int(value);
   }
   mGotRandomNumbers=1;
+  mContext.ready=1;
 }
 
 /**
@@ -60,7 +61,7 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
 int moolticute_request_random_number(int *randomNumbers)
 {
   int i;
-  int timeout=1000000;
+  int timeout=10000000;
   const char *json_str;
   char *msg;
   struct json_object *jObj=json_object_new_object();
@@ -79,8 +80,11 @@ int moolticute_request_random_number(int *randomNumbers)
   json_str=json_object_to_json_string(jObj);
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   memcpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+
+  pthread_mutex_lock (&mContext.write_mutex);
   mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
+  pthread_mutex_unlock (&mContext.write_mutex);
 
   // blank random number array
   memset(mRandomNumbers,0,MAX_RANDOM_NUMBERS);
@@ -102,6 +106,10 @@ int moolticute_request_random_number(int *randomNumbers)
     return M_ERROR_TIMEOUT;
   }
 
+  if (randomNumbers==NULL)
+  {
+    return 0;
+  }
   for(i=0; i<MAX_RANDOM_NUMBERS;i++)
   {
     randomNumbers[i]=mRandomNumbers[i];
