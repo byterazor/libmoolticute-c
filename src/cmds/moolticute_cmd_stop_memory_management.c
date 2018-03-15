@@ -50,6 +50,12 @@ int moolticute_stop_memory_management(int wait)
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
+  if (mContext.info.status.card_inserted == 0)
+  {
+      return M_ERROR_NO_CARD;
+  }
+
+
   json_object_object_add(jObj, "msg", json_object_new_string("exit_memorymgmt"));
 
   json_str=json_object_to_json_string(jObj);

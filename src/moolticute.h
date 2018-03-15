@@ -49,6 +49,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define M_ERROR_NO_MEMORY -8
 #define M_ERROR_NO_SERVICE -9
 #define M_ERROR_NO_CREDENTIAL -10
+#define M_ERROR_NO_CARD -11
 
 /**
 * @brief Mooltipass Device specific information

@@ -74,6 +74,11 @@ int moolticute_request_password(const char *service, const char *login, char *pa
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
+  if (mContext.info.status.card_inserted == 0)
+  {
+      return M_ERROR_NO_CARD;
+  }
+
   if (mContext.info.status.locked == 1)
   {
     return M_ERROR_DEVICE_LOCKED;
