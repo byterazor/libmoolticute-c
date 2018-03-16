@@ -66,15 +66,19 @@ int moolticute_request_random_number(int *randomNumbers)
   char *msg;
   struct json_object *jObj=json_object_new_object();
 
+  pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected==0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
   if (mContext.info.status.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   json_object_object_add(jObj, "msg", json_object_new_string("get_random_numbers"));
   json_str=json_object_to_json_string(jObj);

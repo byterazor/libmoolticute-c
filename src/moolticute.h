@@ -30,7 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <libwebsockets.h>
 #include <pthread.h>
 
-#define MAX_CALLBACKS 20          /// defines the maximum number of supported callbacks
+#define MAX_CALLBACKS 30          /// defines the maximum number of supported callbacks
 #define CARD_ID_SIZE 64           /// the size of the mooltipass card id in bytes
 #define MOOLTICUTE_CMD_SIZE 30    /// the maximum size of moolticute websocket commands in bytes
 #define MAX_MOOLTIPASS_SERVICE_NAME 250 /// the maximum length of a moolitpass service name
@@ -212,6 +212,8 @@ struct moolticute_ctx
   int transmit_size;
   char password[MAX_PASSWORD_LENGTH];   /// used by the ask_password callback to return the password
   int ask_password_running;             /// used for signaling that a password request is running
+  int credential_exist;                 /// used as return value for the credential_exist message
+
 
   // connection states
   int connected;                /// connection has been initiated
@@ -271,4 +273,5 @@ int moolticute_start_memory_management(int want_data, int wait); /// initiate me
 int moolticute_stop_memory_management(int wait); /// stop memory management mode on the mooltipass device
 int moolticute_request_password(const char *service, const char *login, char *password, int timeout);
 int moolticute_get_application_id(char *name, char *version); /// request the application id from daemon
+int moolticute_cmd_service_exist(char *service, int data_node);
 #endif

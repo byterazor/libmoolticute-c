@@ -52,6 +52,7 @@ void moolticute_cb_param_changed(struct json_object *jObj)
   param=json_object_get_string(paramObj);
   value=json_object_get_string(valueObj);
 
+  pthread_mutex_lock (&mContext.write_mutex);
   if (strncmp(param, "delay_after_key", 15) == 0)
   {
     mContext.info.parameters.delay_after_key=strtol(value,NULL,10);
@@ -140,5 +141,5 @@ void moolticute_cb_param_changed(struct json_object *jObj)
   {
     printf("jobj from str:\n---\n%s\n---\n", json_object_to_json_string_ext(data, JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY));
   }
-
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

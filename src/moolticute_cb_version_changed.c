@@ -45,8 +45,9 @@ void moolticute_cb_version_changed(struct json_object *jObj)
   serial=json_object_get_string(serialObj);
   version=json_object_get_string(versionObj);
 
+  pthread_mutex_lock (&mContext.write_mutex);
   mContext.info.device.flash_size=strtol(flash_size, NULL, 10);
   mContext.info.device.hw_serial=strtol(serial, NULL, 10);
   strncpy(mContext.info.device.hw_version,version, strlen(version) < 30 ? strlen(version) : 30);
-
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

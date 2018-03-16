@@ -52,15 +52,19 @@ int moolticute_request_device_uid(char key[32])
   struct json_object *jObj;
   struct json_object *data;
 
+  pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
   if (mContext.info.status.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
+  pthread_mutex_lock(&mContext.write_mutex);
 
   data=json_object_new_object();
   jObj=json_object_new_object();
@@ -78,8 +82,11 @@ int moolticute_request_device_uid(char key[32])
 
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   memcpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+
+  pthread_mutex_lock(&mContext.write_mutex);
   mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
+  pthread_mutex_lock(&mContext.write_mutex);
 
   // send message to moolticuted
   lws_callback_on_writable(mContext.wsi);

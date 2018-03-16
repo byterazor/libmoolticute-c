@@ -34,6 +34,7 @@ void moolticute_cb_status_changed(struct json_object *jObj)
   json_object_object_get_ex(jObj, "data", &data);
   status=json_object_get_string(data);
 
+  pthread_mutex_lock (&mContext.write_mutex);
   if (strncmp(status, "Locked", 6) == 0)
   {
     mContext.info.status.locked=1;
@@ -46,5 +47,5 @@ void moolticute_cb_status_changed(struct json_object *jObj)
   {
     mContext.info.status.card_inserted=0;
   }
-
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

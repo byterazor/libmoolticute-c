@@ -40,10 +40,11 @@ void moolticute_cb_card_db_metadata(struct json_object *jObj)
   json_object_object_get_ex(data, "credentialsDbChangeNumber", &credentialsDbChangeNumberObj);
 
   cardID=json_object_get_string(cardIDobj);
-  memcpy(mContext.info.card.id,cardID,64);
 
+  pthread_mutex_lock (&mContext.write_mutex);
+  memcpy(mContext.info.card.id,cardID,64);
   mContext.info.card.dataDbChangeNumber=json_object_get_int(DbChangeNumberObj);
   mContext.info.card.credentialsDbChangeNumber=json_object_get_int(credentialsDbChangeNumberObj);
-
-
+  mContext.info.status.card_inserted=1;
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

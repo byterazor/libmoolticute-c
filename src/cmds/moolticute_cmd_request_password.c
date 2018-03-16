@@ -41,8 +41,11 @@ void moolticute_cb_ask_password(struct json_object *jObj)
   json_object_object_get_ex(jObj, "data", &data);
   json_object_object_get_ex(data, "password", &password);
 
+  pthread_mutex_lock(&mContext.write_mutex);
   strncpy(mContext.password, json_object_get_string(password),500);
   mContext.ask_password_running=0;
+  pthread_mutex_unlock(&mContext.write_mutex);
+
 }
 
 
@@ -64,25 +67,31 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   struct json_object *data=NULL;
   int tout=timeout*10000;
 
+  pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
   if (mContext.info.status.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
   if (mContext.info.status.card_inserted == 0)
   {
-      return M_ERROR_NO_CARD;
+    pthread_mutex_unlock(&mContext.write_mutex);
+    return M_ERROR_NO_CARD;
   }
 
   if (mContext.info.status.locked == 1)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_DEVICE_LOCKED;
   }
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   jObj = json_object_new_object();
   data = json_object_new_object();
@@ -97,13 +106,20 @@ int moolticute_request_password(const char *service, const char *login, char *pa
 
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+
+  pthread_mutex_lock(&mContext.write_mutex);
   mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   //register the callback
   moolticute_register_cb("ask_password", &moolticute_cb_ask_password);
+
+  pthread_mutex_lock(&mContext.write_mutex);
   memset(mContext.password,0,500);
   mContext.ask_password_running=1;
+  pthread_mutex_unlock(&mContext.write_mutex);
+
   // send message to moolticuted
   lws_callback_on_writable(mContext.wsi);
 
@@ -118,7 +134,8 @@ int moolticute_request_password(const char *service, const char *login, char *pa
     return M_ERROR_TIMEOUT;
   }
 
+  pthread_mutex_lock(&mContext.write_mutex);
   strcpy(password, mContext.password);
-
+  pthread_mutex_unlock(&mContext.write_mutex);
   return 0;
 }

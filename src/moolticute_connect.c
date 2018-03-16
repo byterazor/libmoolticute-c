@@ -34,7 +34,9 @@ void *websocket(void *data)
   {
     lws_service( mContext.context, 250 );
   }
+  pthread_mutex_lock (&mContext.write_mutex);
   mContext.finished=1;
+  pthread_mutex_unlock (&mContext.write_mutex);
   return NULL;
 }
 
@@ -77,6 +79,5 @@ int moolticute_connect()
   {
     return M_ERROR_TIMEOUT;
   }
-
   return 0;
 }

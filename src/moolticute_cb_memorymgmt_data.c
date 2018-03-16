@@ -94,9 +94,9 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
 
   if (services == 0)
   {
-    printf("No Services\n");
     return;
   }
+  pthread_mutex_lock (&mContext.write_mutex);
   mContext.info.mm.updating=1;
 
   if (mContext.info.memory != NULL)
@@ -151,4 +151,5 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
   }
 
   mContext.info.mm.updating=0;
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

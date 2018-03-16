@@ -17,7 +17,7 @@ OBJECTS+=moolticute_cb_version_changed.o moolticute_cb_card_db_metadata.o moolti
 OBJECTS+=cmds/moolticute_cmd_query_random_number.o cmds/moolticute_cmd_request_device_uid.o cmds/moolticute_cmd_start_memory_management.o
 OBJECTS+=mooltipass_memory.o moolticute_cb_memorymgmt_data.o cmds/moolticute_cmd_stop_memory_management.o
 OBJECTS+=cmds/moolticute_cmd_request_password.o cmds/moolticute_cmd_get_application_id.o moolticute_cb_application_id.o
-
+OBJECTS+=cmds/moolticute_cmd_service_exist.o
 .PHONY: clean
 
 all: $(TARGET)

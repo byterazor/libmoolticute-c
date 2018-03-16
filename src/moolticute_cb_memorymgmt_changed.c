@@ -32,15 +32,19 @@ void moolticute_cb_memorymgmt_changed(struct json_object *jObj)
 
   if (strncmp(json_object_get_string(data),"true",4)==0)
   {
+    pthread_mutex_lock (&mContext.write_mutex);
     mContext.info.mm.enabled=1;
+    pthread_mutex_unlock (&mContext.write_mutex);
   }
   else
   {
+    pthread_mutex_lock (&mContext.write_mutex);
     mContext.info.mm.enabled=0;
     if (mContext.info.memory != NULL)
     {
       mooltipass_free_memory(mContext.info.memory);
       mContext.info.memory=NULL;
     }
+    pthread_mutex_unlock (&mContext.write_mutex);
   }
 }

@@ -41,15 +41,21 @@ int moolticute_get_application_id(char *name, char *version)
   char *msg;
   struct json_object *jObj=json_object_new_object();
 
+  pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
   if (mContext.info.status.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
+
+  pthread_mutex_unlock(&mContext.write_mutex);
+
 
   if (strlen(mContext.app.name)== 0)
   {
@@ -61,6 +67,7 @@ int moolticute_get_application_id(char *name, char *version)
 
     msg=malloc(LWS_PRE+strlen(json_str)+1);
     strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+
     pthread_mutex_lock (&mContext.write_mutex);
     mContext.transmit_message=msg+LWS_PRE;
     mContext.transmit_size=strlen(json_str);
@@ -74,8 +81,10 @@ int moolticute_get_application_id(char *name, char *version)
     }
   }
 
+  pthread_mutex_lock(&mContext.write_mutex);
   strncpy(name, mContext.app.name,200);
   strncpy(version, mContext.app.version,200);
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   return 0;
 }

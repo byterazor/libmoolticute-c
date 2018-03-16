@@ -15,7 +15,8 @@ void moolticute_cb_application_id(struct json_object *jObj)
   json_object_object_get_ex(data, "application_name", &app_name);
   json_object_object_get_ex(data, "application_version", &app_version);
 
+  pthread_mutex_lock (&mContext.write_mutex);
   strncpy(mContext.app.name, json_object_get_string(app_name), 200);
   strncpy(mContext.app.version, json_object_get_string(app_version), 200);
-
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

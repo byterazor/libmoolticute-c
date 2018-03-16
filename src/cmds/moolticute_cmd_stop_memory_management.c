@@ -40,21 +40,25 @@ int moolticute_stop_memory_management(int wait)
   char *msg;
   struct json_object *jObj=json_object_new_object();
 
+  pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
   if (mContext.info.status.connected == 0)
   {
+    pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
   if (mContext.info.status.card_inserted == 0)
   {
-      return M_ERROR_NO_CARD;
+    pthread_mutex_unlock(&mContext.write_mutex);
+    return M_ERROR_NO_CARD;
   }
-
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   json_object_object_add(jObj, "msg", json_object_new_string("exit_memorymgmt"));
 
@@ -62,8 +66,11 @@ int moolticute_stop_memory_management(int wait)
 
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
+
+  pthread_mutex_lock(&mContext.write_mutex);
   mContext.transmit_message=msg+LWS_PRE;
   mContext.transmit_size=strlen(json_str);
+  pthread_mutex_unlock(&mContext.write_mutex);
 
   // send message to moolticuted
   lws_callback_on_writable(mContext.wsi);
