@@ -33,6 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute_cb_memorymgmt_data.h"
 #include "moolticute_cb_memorymgmt_changed.h"
 #include "moolticute_cb_application_id.h"
+#include "moolticute_cb_progress.h"
 #include <libwebsockets.h>
 
 struct moolticute_ctx mContext;  /// the moolticute context
@@ -48,7 +49,6 @@ struct moolticute_ctx mContext;  /// the moolticute context
 void moolticute_init_ctx()
 {
   struct lws_context_creation_info info;
-
   // blank everything before using it
   memset(&mContext,0,sizeof(mContext));
   memset(&info, 0, sizeof(info));
@@ -71,5 +71,6 @@ void moolticute_init_ctx()
   moolticute_register_cb("memorymgmt_data", &moolticute_cb_memorymgmt_data);
   moolticute_register_cb("memorymgmt_changed", &moolticute_cb_memorymgmt_changed);
   moolticute_register_cb("get_application_id", &moolticute_cb_application_id);
-
+  moolticute_register_cb("progress_detailed", &moolticute_cb_progress);
+  moolticute_register_cb("progress", &moolticute_cb_progress);
 }
