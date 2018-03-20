@@ -36,10 +36,24 @@ void moolticute_cb_ask_password(struct json_object *jObj)
   int i;
   struct json_object *data;
   struct json_object *password;
-
+  struct json_object *helper;
 
   json_object_object_get_ex(jObj, "data", &data);
   json_object_object_get_ex(data, "password", &password);
+  json_object_object_get_ex(data, "failed", &helper);
+
+  if (helper != NULL)
+  {
+    if (strncmp(json_object_get_string(helper),"true",4)==0)
+    {
+      mContext.error=1;
+      json_object_object_get_ex(data, "error_message", &helper);
+      strncpy(mContext.error_msg,json_object_get_string(helper),500);
+      mContext.ask_password_running=0;
+    }
+    return;
+  }
+
 
   pthread_mutex_lock(&mContext.write_mutex);
   strncpy(mContext.password, json_object_get_string(password),500);
@@ -118,6 +132,7 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   pthread_mutex_lock(&mContext.write_mutex);
   memset(mContext.password,0,500);
   mContext.ask_password_running=1;
+  mContext.error=0;
   pthread_mutex_unlock(&mContext.write_mutex);
 
   // send message to moolticuted
@@ -132,6 +147,11 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   if (tout == 0)
   {
     return M_ERROR_TIMEOUT;
+  }
+
+  if (mContext.error == 1)
+  {
+    return M_ERROR_PASSWORD_NOT_FOUND;
   }
 
   pthread_mutex_lock(&mContext.write_mutex);

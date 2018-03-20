@@ -1,3 +1,4 @@
+
 #ifndef __MOOLTICUTE_H__
 #define __MOOLTICUTE_H__
 /*
@@ -50,6 +51,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define M_ERROR_NO_SERVICE -9
 #define M_ERROR_NO_CREDENTIAL -10
 #define M_ERROR_NO_CARD -11
+#define M_ERROR_PASSWORD_NOT_FOUND -12
 
 /**
 * @brief Mooltipass Device specific information
@@ -210,10 +212,12 @@ struct moolticute_ctx
 	int cb_nr;
   unsigned char *transmit_message;
   int transmit_size;
+  int error;
+  char error_msg[500];
+
   char password[MAX_PASSWORD_LENGTH];   /// used by the ask_password callback to return the password
   int ask_password_running;             /// used for signaling that a password request is running
   int credential_exist;                 /// used as return value for the credential_exist message
-
 
   // connection states
   int connected;                /// connection has been initiated
