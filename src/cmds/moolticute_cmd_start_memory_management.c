@@ -60,17 +60,6 @@ int moolticute_start_memory_management(int want_data, int wait)
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
-  if (mContext.info.status.card_inserted == 0)
-  {
-    pthread_mutex_unlock(&mContext.write_mutex);
-    return M_ERROR_NO_CARD;
-  }
-
-  if (mContext.info.status.locked==1)
-  {
-    pthread_mutex_unlock(&mContext.write_mutex);
-    return M_ERROR_DEVICE_LOCKED;
-  }
   pthread_mutex_unlock(&mContext.write_mutex);
 
   json_object_object_add(data, "want_data", json_object_new_string(want_data == 0 ? "false" : "true"));

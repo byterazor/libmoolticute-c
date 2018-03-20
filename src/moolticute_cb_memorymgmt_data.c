@@ -62,7 +62,7 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
   struct json_object *favouriteObj=NULL;
   struct json_object *loginObj=NULL;
   struct json_object *passwordObj=NULL;
-
+  
   struct mooltipass_service *mService;
   const char *service_name;
   char address[2];
