@@ -34,6 +34,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute_cb_memorymgmt_changed.h"
 #include "moolticute_cb_application_id.h"
 #include "moolticute_cb_progress.h"
+#include "moolticute_cb_failed_memorymgmt.h"
+#include "moolticute_errors.h"
 #include <libwebsockets.h>
 
 struct moolticute_ctx mContext;  /// the moolticute context
@@ -60,6 +62,9 @@ void moolticute_init_ctx()
 
   mContext.context=lws_create_context( &info );
 
+  // initialize error structure in context
+  moolticute_errors_init(&mContext);
+
   // register all callbacks here
   moolticute_register_cb("",&moolticute_cb_not_found);
   moolticute_register_cb("mp_connected", &moolticute_cb_connect);
@@ -73,4 +78,5 @@ void moolticute_init_ctx()
   moolticute_register_cb("get_application_id", &moolticute_cb_application_id);
   moolticute_register_cb("progress_detailed", &moolticute_cb_progress);
   moolticute_register_cb("progress", &moolticute_cb_progress);
+  moolticute_register_cb("failed_memorymgmt", &moolticute_cb_failed_memorymgmt);
 }

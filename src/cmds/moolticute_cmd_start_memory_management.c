@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "../moolticute.h"
+#include "../moolticute_errors.h"
 #include <json.h>
 #include <libwebsockets.h>
 
@@ -46,6 +47,7 @@ int moolticute_start_memory_management(int want_data, int wait)
   char *msg;
   struct json_object *data=json_object_new_object();
   struct json_object *jObj=json_object_new_object();
+  int ret=0;
 
   pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
@@ -58,6 +60,12 @@ int moolticute_start_memory_management(int want_data, int wait)
   {
     pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
+  }
+
+  if (mContext.info.status.locked == 1)
+  {
+    pthread_mutex_unlock(&mContext.write_mutex);
+    return M_ERROR_DEVICE_LOCKED;
   }
 
   pthread_mutex_unlock(&mContext.write_mutex);
@@ -81,9 +89,24 @@ int moolticute_start_memory_management(int want_data, int wait)
   // send message to moolticuted
   lws_callback_on_writable(mContext.wsi);
 
-  while(mContext.info.mm.updating==1 && wait == 1)
+  while((mContext.info.mm.updating==1 && moolticute_error_search(&mContext, START_MEMORYMGMT) == -1)  && wait == 1)
   {
     usleep(100);
+  }
+
+  ret=moolticute_error_search(&mContext, START_MEMORYMGMT);
+  if (ret > -1)
+  {
+    printf("%d, %s\n", mContext.errors[ret]->error_code, mContext.errors[ret]->error_msg);
+
+    if (mContext.errors[ret]->error_code == 0)
+    {
+      return M_ERROR_APPROVAL_REQUIRED;
+    }
+    else
+    {
+      return -1;
+    }
   }
 
   return 0;

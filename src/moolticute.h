@@ -36,6 +36,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MOOLTICUTE_CMD_SIZE 30    /// the maximum size of moolticute websocket commands in bytes
 #define MAX_MOOLTIPASS_SERVICE_NAME 250 /// the maximum length of a moolitpass service name
 #define MAX_PASSWORD_LENGTH 500   /// Maximum number of chars per password, required for allocationg enough space
+#define MOOLTICUTE_ERROR_BLOCK 10 /// Number of elements increased when error array is full
+#define MOLLTICUTE_VALUE_BLOCK 10 /// Number of elements increased when value array is full
+
 
 /*
 * ERROR Codes
@@ -52,6 +55,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define M_ERROR_NO_CREDENTIAL -10
 #define M_ERROR_NO_CARD -11
 #define M_ERROR_PASSWORD_NOT_FOUND -12
+#define M_ERROR_APPROVAL_REQUIRED -13
+
+
+/**
+* @brief all the available message types
+*/
+enum moolticute_message_types {
+  PARAM_CHANGED,
+  MP_CONNECTED,
+  MP_DISCONNECTED,
+  STATUS_CHANGED,
+  VERSION_CHANGED,
+  CARD_DB_METADATA,
+  MEMORYMGMT_DATA,
+  MEMORYMGMT_CHANGED,
+  GET_APPLICATION_ID,
+  PROGRESS_DETAILED,
+  PROGRESS,
+  START_MEMORYMGMT
+};
 
 /**
 * @brief Mooltipass Device specific information
@@ -197,6 +220,26 @@ struct moolticute_cb
 };
 
 /**
+* @brief structure representing an error received from moolticute daemon
+*/
+struct moolticute_error
+{
+  enum moolticute_message_types message_type;
+  int error_code;
+  char *error_msg;
+};
+
+/**
+* @brief structure representing an return value from the mollticute daemon
+*/
+struct moolticute_value
+{
+  int message_type;
+  void *value;
+};
+
+
+/**
 * @brief context for connecting to the moolticuted service
 */
 struct moolticute_ctx
@@ -212,12 +255,14 @@ struct moolticute_ctx
 	int cb_nr;
   unsigned char *transmit_message;
   int transmit_size;
-  int error;
-  char error_msg[500];
 
-  char password[MAX_PASSWORD_LENGTH];   /// used by the ask_password callback to return the password
-  int ask_password_running;             /// used for signaling that a password request is running
-  int credential_exist;                 /// used as return value for the credential_exist message
+  // error messages
+  struct moolticute_error **errors;
+  int errors_size;
+
+  // return values
+  struct moolticute_value **values;
+  int values_size;
 
   // connection states
   int connected;                /// connection has been initiated
