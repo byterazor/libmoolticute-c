@@ -19,16 +19,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_errors.h
-* @brief Header File for error management
+* @file moolticute_array.h
+* @brief Header File for dynamic array management of moolticute client
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 */
 
-int moolticute_errors_init(struct moolticute_ctx *ctx);   /// initialize error structure in context
+int moolticute_array_init(struct moolticute_ctx *ctx);   /// initialize array structures in context
 int moolticute_error_add(struct moolticute_ctx *ctx, enum moolticute_message_types type, int error_code, const char *error_msg);
+int moolticute_value_add(struct moolticute_ctx *ctx, enum moolticute_message_types type, void *data);
+int moolticute_error_value(struct moolticute_ctx *ctx, enum moolticute_message_types type, int error_code, const char *error_msg);
 void moolticute_delete_error(struct moolticute_ctx *ctx, int index);
+void moolticute_delete_value(struct moolticute_ctx *ctx, int index);
 void moolticute_free_errors(struct moolticute_ctx *ctx);
 int moolticute_error_search(struct moolticute_ctx *ctx, enum moolticute_message_types type);
-
+int moolticute_value_search(struct moolticute_ctx *ctx, enum moolticute_message_types type);
 #endif

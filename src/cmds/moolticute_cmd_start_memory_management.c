@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "../moolticute.h"
-#include "../moolticute_errors.h"
+#include "../moolticute_array.h"
 #include <json.h>
 #include <libwebsockets.h>
 

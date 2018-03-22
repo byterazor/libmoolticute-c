@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /**
 * @file moolticute_errors.c
-* @brief Source File for error management
+* @brief Source File for dynamic array management of moolticute client
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 */
@@ -26,16 +26,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute.h"
 
 /**
-* @brief initialize the error structure in context
+* @brief initialize the error and value structure in context
 *
 * @param ctx - the moolticute context
 *
 * @return 0 = everything is fine, -1 error
 */
-int moolticute_errors_init(struct moolticute_ctx *ctx)
+int moolticute_array_init(struct moolticute_ctx *ctx)
 {
-  int i=0;
-
   ctx->errors=calloc(sizeof(struct moolticute_error *), MOOLTICUTE_ERROR_BLOCK);
   if (ctx->errors==NULL)
   {
@@ -44,10 +42,15 @@ int moolticute_errors_init(struct moolticute_ctx *ctx)
 
   ctx->errors_size=MOOLTICUTE_ERROR_BLOCK;
 
-  for (i=0; i < ctx->errors_size; i++)
+  ctx->values=calloc(sizeof(struct moolticute_value *), MOOLTICUTE_VALUE_BLOCK);
+  if (ctx->values==NULL)
   {
-    ctx->errors[i]=NULL;
+    free(ctx->errors);
+    return -1;
   }
+
+  ctx->values_size=MOOLTICUTE_VALUE_BLOCK;
+
 
   return 0;
 }
@@ -104,6 +107,50 @@ int moolticute_error_add(struct moolticute_ctx *ctx, enum moolticute_message_typ
 }
 
 /**
+* @brief add a new value to the array
+*
+* @param ctx - the moolticute context to use
+* @param type - the message type producing the error
+* @param data - the return value
+*
+* @return 0 = everything is fine, -1 error
+*/
+int moolticute_value_add(struct moolticute_ctx *ctx, enum moolticute_message_types type, void *data)
+{
+  struct moolticute_value *value;
+  int i=0;
+  pthread_mutex_lock (&ctx->write_mutex);
+  while(ctx->values[i]!=NULL && i < ctx->values_size)
+  {
+    i++;
+  }
+
+  // check if we have to increase array size
+  {
+    ctx->values=realloc(ctx->values, ctx->values_size+MOOLTICUTE_VALUE_BLOCK);
+    ctx->values_size+=MOOLTICUTE_VALUE_BLOCK;
+    if (i == ctx->values_size-1)
+    i++;
+  }
+
+  // create a new error element/**
+  value=malloc(sizeof(struct moolticute_value));
+  if (value == NULL)
+  {
+    return -1;
+  }
+  value->message_type=type;
+  value->value=data;
+
+  ctx->values[i]=value;
+
+  pthread_mutex_unlock (&ctx->write_mutex);
+
+  return 0;
+}
+
+
+/**
 * @brief delete an error element from the error array in ctx
 *
 * @param ctx - the context of the error array
@@ -111,7 +158,6 @@ int moolticute_error_add(struct moolticute_ctx *ctx, enum moolticute_message_typ
 */
 void moolticute_delete_error(struct moolticute_ctx *ctx, int index)
 {
-  int i=0;
   if (ctx == NULL)
   {
     return;
@@ -136,6 +182,40 @@ void moolticute_delete_error(struct moolticute_ctx *ctx, int index)
   ctx->errors[index]=NULL;
 
 }
+
+/**
+* @brief delete a value element from the values array in ctx
+*
+* @param ctx - the context of the value array
+* @param index - the index to delete
+*/
+void moolticute_delete_value(struct moolticute_ctx *ctx, int index)
+{
+  if (ctx == NULL)
+  {
+    return;
+  }
+
+  if (ctx->values_size==0)
+  {
+    return;
+  }
+
+  if (ctx->values[index]==NULL)
+  {
+    return;
+  }
+
+  if (ctx->values[index]->value!= NULL)
+  {
+    free(ctx->values[index]->value);
+  }
+  free(ctx->values[index]);
+
+  ctx->values[index]=NULL;
+
+}
+
 
 /**
 * @brief delete the whole errors array
@@ -184,6 +264,41 @@ int moolticute_error_search(struct moolticute_ctx *ctx, enum moolticute_message_
     if (ctx->errors[i]!= NULL)
     {
       if (ctx->errors[i]->message_type==type)
+      {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+/**
+* @brief find the value to a given message type
+*
+* @param ctx - the context of the error array
+* @param type - the message type
+*
+* @return index of the value
+* @return -1 if not found
+*/
+int moolticute_value_search(struct moolticute_ctx *ctx, enum moolticute_message_types type)
+{
+  int i=0;
+
+  if (ctx == NULL)
+  {
+    return -1;
+  }
+
+  if (ctx->values==NULL)
+  {
+    return -1;
+  }
+  for(i=0; i< ctx->values_size; i++)
+  {
+    if (ctx->values[i]!= NULL)
+    {
+      if (ctx->values[i]->message_type==type)
       {
         return i;
       }

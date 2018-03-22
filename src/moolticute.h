@@ -37,7 +37,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_MOOLTIPASS_SERVICE_NAME 250 /// the maximum length of a moolitpass service name
 #define MAX_PASSWORD_LENGTH 500   /// Maximum number of chars per password, required for allocationg enough space
 #define MOOLTICUTE_ERROR_BLOCK 10 /// Number of elements increased when error array is full
-#define MOLLTICUTE_VALUE_BLOCK 10 /// Number of elements increased when value array is full
+#define MOOLTICUTE_VALUE_BLOCK 10 /// Number of elements increased when value array is full
 
 
 /*
@@ -56,7 +56,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define M_ERROR_NO_CARD -11
 #define M_ERROR_PASSWORD_NOT_FOUND -12
 #define M_ERROR_APPROVAL_REQUIRED -13
-
+#define M_ERROR_UNKNOWN_ERROR -14
 
 /**
 * @brief all the available message types
@@ -73,7 +73,8 @@ enum moolticute_message_types {
   GET_APPLICATION_ID,
   PROGRESS_DETAILED,
   PROGRESS,
-  START_MEMORYMGMT
+  START_MEMORYMGMT,
+  ASK_PASSWORD
 };
 
 /**

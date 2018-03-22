@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "moolticute.h"
-#include "moolticute_errors.h"
+#include "moolticute_array.h"
 #include <json.h>
 #include <stdio.h>
 
@@ -46,7 +46,6 @@ void moolticute_cb_failed_memorymgmt(struct json_object *jObj)
       json_object_object_get_ex(data, "error_message", &msg);
 
       moolticute_error_add(&mContext, START_MEMORYMGMT, json_object_get_int(code), json_object_get_string(msg));
-      printf("mm failed\n");
     }
     return;
   }

@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "../moolticute.h"
+#include "../moolticute_array.h"
 #include <json.h>
 #include <libwebsockets.h>
 
@@ -33,10 +34,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 void moolticute_cb_ask_password(struct json_object *jObj)
 {
-  int i;
   struct json_object *data;
   struct json_object *password;
   struct json_object *helper;
+  struct json_object *code;
+  struct json_object *msg;
 
   json_object_object_get_ex(jObj, "data", &data);
   json_object_object_get_ex(data, "password", &password);
@@ -46,19 +48,21 @@ void moolticute_cb_ask_password(struct json_object *jObj)
   {
     if (strncmp(json_object_get_string(helper),"true",4)==0)
     {
-      mContext.error=1;
-      json_object_object_get_ex(data, "error_message", &helper);
-      strncpy(mContext.error_msg,json_object_get_string(helper),500);
-      mContext.ask_password_running=0;
+      json_object_object_get_ex(data, "error_code", &code);
+      json_object_object_get_ex(data, "error_message", &msg);
+
+      moolticute_error_add(&mContext, ASK_PASSWORD, json_object_get_int(code), json_object_get_string(msg));
     }
     return;
   }
 
-
-  pthread_mutex_lock(&mContext.write_mutex);
-  strncpy(mContext.password, json_object_get_string(password),500);
-  mContext.ask_password_running=0;
-  pthread_mutex_unlock(&mContext.write_mutex);
+  char *value=malloc(strlen(json_object_get_string(password)+1));
+  if (value == NULL)
+  {
+    return;
+  }
+  strcpy(value, json_object_get_string(password));
+  moolticute_value_add(&mContext, ASK_PASSWORD, (void *) value);
 
 }
 
@@ -80,6 +84,8 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   struct json_object *jObj=NULL;
   struct json_object *data=NULL;
   int tout=timeout*10000;
+  int ret=0;
+
 
   pthread_mutex_lock(&mContext.write_mutex);
   if (mContext.connected == 0)
@@ -92,12 +98,6 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   {
     pthread_mutex_unlock(&mContext.write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
-  }
-
-  if (mContext.info.status.card_inserted == 0)
-  {
-    pthread_mutex_unlock(&mContext.write_mutex);
-    return M_ERROR_NO_CARD;
   }
 
   if (mContext.info.status.locked == 1)
@@ -129,16 +129,10 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   //register the callback
   moolticute_register_cb("ask_password", &moolticute_cb_ask_password);
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  memset(mContext.password,0,500);
-  mContext.ask_password_running=1;
-  mContext.error=0;
-  pthread_mutex_unlock(&mContext.write_mutex);
-
   // send message to moolticuted
   lws_callback_on_writable(mContext.wsi);
 
-  while(mContext.ask_password_running==1 && tout>0)
+  while(moolticute_error_search(&mContext, ASK_PASSWORD) == -1 && moolticute_value_search(&mContext, ASK_PASSWORD) == -1  && tout>0)
   {
     usleep(100);
     tout--;
@@ -149,13 +143,33 @@ int moolticute_request_password(const char *service, const char *login, char *pa
     return M_ERROR_TIMEOUT;
   }
 
-  if (mContext.error == 1)
+  ret=moolticute_error_search(&mContext, ASK_PASSWORD);
+  if (ret > -1)
   {
-    return M_ERROR_PASSWORD_NOT_FOUND;
+    if(strcmp(mContext.errors[ret]->error_msg,"credential access refused by user")==0)
+    {
+      moolticute_delete_error(&mContext,ret);
+      return M_ERROR_APPROVAL_REQUIRED;
+    }
+    else if (strcmp(mContext.errors[ret]->error_msg,"failed to select context on device")==0)
+    {
+      moolticute_delete_error(&mContext,ret);
+      return M_ERROR_PASSWORD_NOT_FOUND;
+    }
+    else
+    {
+      moolticute_delete_error(&mContext,ret);
+      return M_ERROR_UNKNOWN_ERROR;
+    }
   }
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  strcpy(password, mContext.password);
-  pthread_mutex_unlock(&mContext.write_mutex);
+  ret=moolticute_value_search(&mContext, ASK_PASSWORD);
+  if (ret == -1)
+  {
+    return M_ERROR_UNKNOWN_ERROR;
+  }
+
+  strcpy(password,(char *) mContext.values[ret]->value);
+  moolticute_delete_value(&mContext, ret);
   return 0;
 }
