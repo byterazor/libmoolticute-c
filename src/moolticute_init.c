@@ -40,6 +40,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 struct moolticute_ctx mContext;  /// the moolticute context
 
+struct lws_protocols protocols[] =
+{
+	{
+		"moolticute-protocol",
+		callback_moolticute,
+		0,
+		2000,
+	},
+	{ NULL, NULL, 0, 0 } /* terminator */
+};
 
 /**
 * @brief initialize the moolticute context

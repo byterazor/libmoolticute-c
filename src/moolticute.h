@@ -286,17 +286,7 @@ void moolticute_register_cb(const char *cmd, void (*cb)(struct json_object *jObj
 /**
 * protocol structure required by libwebsockets
 */
-static struct lws_protocols protocols[] =
-{
-	{
-		"moolticute-protocol",
-		callback_moolticute,
-		0,
-		2000,
-	},
-	{ NULL, NULL, 0, 0 } /* terminator */
-};
-
+extern struct lws_protocols protocols[];
 
 /*
 *   All available functions
