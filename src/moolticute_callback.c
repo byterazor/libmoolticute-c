@@ -127,7 +127,7 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
           pthread_mutex_unlock (&mContext.write_mutex);
           return 0;
         }
-        lws_write(mContext.wsi, mContext.transmit_message, mContext.transmit_size,LWS_WRITE_TEXT);
+        lws_write(mContext.wsi, (unsigned char *)mContext.transmit_message, mContext.transmit_size,LWS_WRITE_TEXT);
         mContext.transmit_message=NULL;
         pthread_mutex_unlock (&mContext.write_mutex);
         break;
