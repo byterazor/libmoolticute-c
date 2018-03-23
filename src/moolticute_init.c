@@ -24,17 +24,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "moolticute.h"
-#include "moolticute_cb_not_found.h"
-#include "moolticute_cb_connected.h"
-#include "moolticute_cb_status_changed.h"
-#include "moolticute_cb_param_changed.h"
-#include "moolticute_cb_version_changed.h"
-#include "moolticute_cb_card_db_metadata.h"
-#include "moolticute_cb_memorymgmt_data.h"
-#include "moolticute_cb_memorymgmt_changed.h"
-#include "moolticute_cb_application_id.h"
-#include "moolticute_cb_progress.h"
-#include "moolticute_cb_failed_memorymgmt.h"
+#include "callbacks/moolticute_cb_not_found.h"
+#include "callbacks/moolticute_cb_connected.h"
+#include "callbacks/moolticute_cb_status_changed.h"
+#include "callbacks/moolticute_cb_param_changed.h"
+#include "callbacks/moolticute_cb_version_changed.h"
+#include "callbacks/moolticute_cb_card_db_metadata.h"
+#include "callbacks/moolticute_cb_memorymgmt_data.h"
+#include "callbacks/moolticute_cb_memorymgmt_changed.h"
+#include "callbacks/moolticute_cb_application_id.h"
+#include "callbacks/moolticute_cb_progress.h"
+#include "callbacks/moolticute_cb_failed_memorymgmt.h"
 #include "moolticute_array.h"
 #include <libwebsockets.h>
 

@@ -17,12 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_version_changed.h
-* @brief Header file for managing memorymgmt_data
+* @file moolticute_cb_connected.h
+* @brief Header file for managing commands mp_connect and mp_disconnect
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
 
-void moolticute_cb_memorymgmt_data(struct json_object *jObj);
+void moolticute_cb_connect(struct json_object *jObj);
+void moolticute_cb_disconnect(struct json_object *jObj);

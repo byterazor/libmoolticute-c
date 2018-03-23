@@ -17,34 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_connected.c
-* @brief C Source file for managing commands mp_connect and mp_disconnect
+* @file moolticute_cb_connected.h
+* @brief Header file for managing commands mp_connect and mp_disconnect
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
 
-void moolticute_cb_memorymgmt_changed(struct json_object *jObj)
-{
-  struct json_object *data;
-  json_object_object_get_ex(jObj, "data", &data);
-
-  if (strncmp(json_object_get_string(data),"true",4)==0)
-  {
-    pthread_mutex_lock (&mContext.write_mutex);
-    mContext.info.mm.enabled=1;
-    pthread_mutex_unlock (&mContext.write_mutex);
-  }
-  else
-  {
-    pthread_mutex_lock (&mContext.write_mutex);
-    mContext.info.mm.enabled=0;
-    if (mContext.info.memory != NULL)
-    {
-      mooltipass_free_memory(mContext.info.memory);
-      mContext.info.memory=NULL;
-    }
-    pthread_mutex_unlock (&mContext.write_mutex);
-  }
-}
+void moolticute_cb_memorymgmt_changed(struct json_object *jObj);

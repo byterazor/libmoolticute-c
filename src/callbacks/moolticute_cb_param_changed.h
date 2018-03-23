@@ -17,35 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_status_changed.c
-* @brief C Source file for managing command status_changed
+* @file moolticute_cb_param_changed.h
+* @brief Header file for managing command param_changed
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
-#include <json.h>
 
-void moolticute_cb_status_changed(struct json_object *jObj)
-{
-  struct json_object *data;
-  const char *status;
-
-  json_object_object_get_ex(jObj, "data", &data);
-  status=json_object_get_string(data);
-
-  pthread_mutex_lock (&mContext.write_mutex);
-  if (strncmp(status, "Locked", 6) == 0)
-  {
-    mContext.info.status.locked=1;
-  }
-  else if (strncmp(status,"Unlocked",8) == 0)
-  {
-    mContext.info.status.locked=0;
-  }
-  else if (strncmp(status,"NoCardInserted",14)==0 )
-  {
-    mContext.info.status.card_inserted=0;
-  }
-  pthread_mutex_unlock (&mContext.write_mutex);
-}
+void moolticute_cb_param_changed(struct json_object *jObj);

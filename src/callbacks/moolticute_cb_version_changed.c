@@ -17,34 +17,37 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_card_db_metadata.c
-* @brief C Source file for managing command card_db_metadata
+* @file moolticute_cb_version_changed.c
+* @brief C Source file for managing command version_changed
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
+#include "../moolticute.h"
 #include <json.h>
 
-void moolticute_cb_card_db_metadata(struct json_object *jObj)
+void moolticute_cb_version_changed(struct json_object *jObj)
 {
   struct json_object *data;
-  struct json_object *cardIDobj;
-  struct json_object *DbChangeNumberObj;
-  struct json_object *credentialsDbChangeNumberObj;
-  const char *cardID;
+  struct json_object *flashObj;
+  struct json_object *serialObj;
+  struct json_object *versionObj;
+  const char *flash_size;
+  const char *serial;
+  const char *version;
 
   json_object_object_get_ex(jObj, "data", &data);
-  json_object_object_get_ex(data, "cardId", &cardIDobj);
-  json_object_object_get_ex(data, "dataDbChangeNumber", &DbChangeNumberObj);
-  json_object_object_get_ex(data, "credentialsDbChangeNumber", &credentialsDbChangeNumberObj);
+  json_object_object_get_ex(data, "flash_size", &flashObj);
+  json_object_object_get_ex(data, "hw_serial", &serialObj);
+  json_object_object_get_ex(data, "hw_version", &versionObj);
 
-  cardID=json_object_get_string(cardIDobj);
+  flash_size=json_object_get_string(flashObj);
+  serial=json_object_get_string(serialObj);
+  version=json_object_get_string(versionObj);
 
   pthread_mutex_lock (&mContext.write_mutex);
-  memcpy(mContext.info.card.id,cardID,64);
-  mContext.info.card.dataDbChangeNumber=json_object_get_int(DbChangeNumberObj);
-  mContext.info.card.credentialsDbChangeNumber=json_object_get_int(credentialsDbChangeNumberObj);
-  mContext.info.status.card_inserted=1;
+  mContext.info.device.flash_size=strtol(flash_size, NULL, 10);
+  mContext.info.device.hw_serial=strtol(serial, NULL, 10);
+  strncpy(mContext.info.device.hw_version,version, strlen(version) < 30 ? strlen(version) : 30);
   pthread_mutex_unlock (&mContext.write_mutex);
 }

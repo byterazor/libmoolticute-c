@@ -17,37 +17,35 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_failed_memorymgmt.c
-* @brief Source File for the moolticute_cb_failed_memorymgmt callback
+* @file moolticute_cb_status_changed.c
+* @brief C Source file for managing command status_changed
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
-#include "moolticute_array.h"
+#include "../moolticute.h"
 #include <json.h>
-#include <stdio.h>
 
-void moolticute_cb_failed_memorymgmt(struct json_object *jObj)
+void moolticute_cb_status_changed(struct json_object *jObj)
 {
   struct json_object *data;
-  struct json_object *failed;
-  struct json_object *code;
-  struct json_object *msg;
+  const char *status;
 
   json_object_object_get_ex(jObj, "data", &data);
-  json_object_object_get_ex(data, "failed", &failed);
+  status=json_object_get_string(data);
 
-  if (failed != NULL)
+  pthread_mutex_lock (&mContext.write_mutex);
+  if (strncmp(status, "Locked", 6) == 0)
   {
-    if (strncmp(json_object_get_string(failed),"true",4)==0)
-    {
-      json_object_object_get_ex(data, "error_code", &code);
-      json_object_object_get_ex(data, "error_message", &msg);
-
-      moolticute_error_add(&mContext, START_MEMORYMGMT, json_object_get_int(code), json_object_get_string(msg));
-    }
-    return;
+    mContext.info.status.locked=1;
   }
-
+  else if (strncmp(status,"Unlocked",8) == 0)
+  {
+    mContext.info.status.locked=0;
+  }
+  else if (strncmp(status,"NoCardInserted",14)==0 )
+  {
+    mContext.info.status.card_inserted=0;
+  }
+  pthread_mutex_unlock (&mContext.write_mutex);
 }

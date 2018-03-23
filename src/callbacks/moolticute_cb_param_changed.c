@@ -23,7 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
+#include "../moolticute.h"
 #include <json.h>
 
 int isTrue(const char *value)

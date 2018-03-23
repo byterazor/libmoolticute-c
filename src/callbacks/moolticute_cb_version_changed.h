@@ -23,6 +23,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
 
 void moolticute_cb_version_changed(struct json_object *jObj);

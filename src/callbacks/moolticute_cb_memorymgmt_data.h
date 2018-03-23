@@ -17,12 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-* @file moolticute_cb_param_changed.h
-* @brief Header file for managing command param_changed
+* @file moolticute_cb_version_changed.h
+* @brief Header file for managing memorymgmt_data
 * @author Dominik Meyer <dmeyer@federationhq.de>
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
 
-void moolticute_cb_param_changed(struct json_object *jObj);
+void moolticute_cb_memorymgmt_data(struct json_object *jObj);

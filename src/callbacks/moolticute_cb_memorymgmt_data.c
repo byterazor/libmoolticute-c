@@ -23,7 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 * @copyright 2018 by Dominik Meyer
 *
 */
-#include "moolticute.h"
+#include "../moolticute.h"
 #include <json.h>
 
 int mooltipass_penc_to_str(struct json_object *password_enc, char *password)
@@ -62,7 +62,7 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
   struct json_object *favouriteObj=NULL;
   struct json_object *loginObj=NULL;
   struct json_object *passwordObj=NULL;
-  
+
   struct mooltipass_service *mService;
   const char *service_name;
   char address[2];
