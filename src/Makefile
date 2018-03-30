@@ -33,7 +33,7 @@ all: $(TARGET)
 
 
 libmoolticute.a: $(OBJECTS) $(CBS)
-	$(AR) -cvq $@ $(OBJECTS)
+	$(AR) -cvq $@ $(OBJECTS) $(CBS)
 
 clean:
 	-@rm -rf *.o *.a
