@@ -24,5 +24,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 
-void moolticute_cb_connect(struct json_object *jObj);
-void moolticute_cb_disconnect(struct json_object *jObj);
+void moolticute_cb_connect(void *user, struct json_object *jObj);
+void moolticute_cb_disconnect(void *user, struct json_object *jObj);

@@ -26,26 +26,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../moolticute.h"
 #include <json.h>
 
-void moolticute_cb_status_changed(struct json_object *jObj)
+void moolticute_cb_status_changed(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) user;
   struct json_object *data;
   const char *status;
 
   json_object_object_get_ex(jObj, "data", &data);
   status=json_object_get_string(data);
 
-  pthread_mutex_lock (&mContext.write_mutex);
+  pthread_mutex_lock (&ctx->write_mutex);
   if (strncmp(status, "Locked", 6) == 0)
   {
-    mContext.info.status.locked=1;
+    ctx->info.status.locked=1;
   }
   else if (strncmp(status,"Unlocked",8) == 0)
   {
-    mContext.info.status.locked=0;
+    ctx->info.status.locked=0;
   }
   else if (strncmp(status,"NoCardInserted",14)==0 )
   {
-    mContext.info.status.card_inserted=0;
+    ctx->info.status.card_inserted=0;
   }
-  pthread_mutex_unlock (&mContext.write_mutex);
+  pthread_mutex_unlock (&ctx->write_mutex);
 }

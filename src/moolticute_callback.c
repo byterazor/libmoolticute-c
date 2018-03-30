@@ -26,20 +26,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "moolticute.h"
 #include <json.h>
 
-/**
-* @brief structure for managing memory allocation within the callback
-*/
-struct buffer
-{
-  unsigned int size;  /// number of the already allocated memory
-  char *buffer;       /// pointer to the allocated memory
-};
 
 
-struct buffer cb_buffer = {
-    0,
-    NULL
-};    /// instantiation of the callback buffer. This is possible here, because we only have one callback
+
 
 
 /**
@@ -56,6 +45,7 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
   struct json_object *jobj;
   struct json_object *msg;
   struct json_tokener *tokener=json_tokener_new();
+  struct moolticute_ctx *ctx= (struct moolticute_ctx *) user;
   const char *cmd;
   int i;
   int cb_found=0;
@@ -63,9 +53,9 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
   switch( reason )
     {
       case LWS_CALLBACK_CLIENT_ESTABLISHED:
-        pthread_mutex_lock (&mContext.write_mutex);
-        mContext.connected=1;
-        pthread_mutex_unlock (&mContext.write_mutex);
+        pthread_mutex_lock (&ctx->write_mutex);
+        ctx->connected=1;
+        pthread_mutex_unlock (&ctx->write_mutex);
         break;
 
       case LWS_CALLBACK_CLIENT_RECEIVE:
@@ -75,12 +65,12 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
         if (len>0)
         {
 
-          cb_buffer.buffer=realloc(cb_buffer.buffer, cb_buffer.size+len);
-          memcpy(( (char *)cb_buffer.buffer)+cb_buffer.size, in, len);
-          cb_buffer.size += len;
+          ctx->cb_buffer.buffer=realloc(ctx->cb_buffer.buffer, ctx->cb_buffer.size+len);
+          memcpy(( (char *)ctx->cb_buffer.buffer)+ctx->cb_buffer.size, in, len);
+          ctx->cb_buffer.size += len;
         }
 
-        jobj =json_tokener_parse_ex(tokener,cb_buffer.buffer,cb_buffer.size);
+        jobj =json_tokener_parse_ex(tokener,ctx->cb_buffer.buffer,ctx->cb_buffer.size);
 
         // the full json object has not been received yet
         // just return
@@ -95,48 +85,48 @@ int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void
 
         // search for a callback for this command
         cb_found=0;
-        for(i=0; i<mContext.cb_nr; i++)
+        for(i=0; i<ctx->cb_nr; i++)
         {
-          if (strcmp(mContext.callbacks[i].cmd, cmd)==0 && mContext.callbacks[i].cb != NULL)
+          if (strcmp(ctx->callbacks[i].cmd, cmd)==0 && ctx->callbacks[i].cb != NULL)
           {
             cb_found=1;
-            mContext.callbacks[i].cb(jobj);
+            ctx->callbacks[i].cb(user,jobj);
           }
         }
 
         // if no callback has been found, call the not_found callback
         if (cb_found==0)
         {
-          mContext.callbacks[0].cb(jobj);
+          ctx->callbacks[0].cb(user,jobj);
         }
 
         // free callback buffer
-        free(cb_buffer.buffer);
-        cb_buffer.buffer=NULL;
-        cb_buffer.size=0;
+        free(ctx->cb_buffer.buffer);
+        ctx->cb_buffer.buffer=NULL;
+        ctx->cb_buffer.size=0;
 
         // free the json object
         json_object_put(jobj);
         break;
 
       case LWS_CALLBACK_CLIENT_WRITEABLE:
-        pthread_mutex_lock (&mContext.write_mutex);
+        pthread_mutex_lock (&ctx->write_mutex);
 
-        if (mContext.transmit_message==NULL)
+        if (ctx->transmit_message==NULL)
         {
-          pthread_mutex_unlock (&mContext.write_mutex);
+          pthread_mutex_unlock (&ctx->write_mutex);
           return 0;
         }
-        lws_write(mContext.wsi, (unsigned char *)mContext.transmit_message, mContext.transmit_size,LWS_WRITE_TEXT);
-        mContext.transmit_message=NULL;
-        pthread_mutex_unlock (&mContext.write_mutex);
+        lws_write(ctx->wsi, (unsigned char *)ctx->transmit_message, ctx->transmit_size,LWS_WRITE_TEXT);
+        ctx->transmit_message=NULL;
+        pthread_mutex_unlock (&ctx->write_mutex);
         break;
       case LWS_CALLBACK_CLOSED:
         break;
       case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-        pthread_mutex_lock (&mContext.write_mutex);
-        mContext.connected=0;
-        pthread_mutex_unlock (&mContext.write_mutex);
+        pthread_mutex_lock (&ctx->write_mutex);
+        ctx->connected=0;
+        pthread_mutex_unlock (&ctx->write_mutex);
         break;
 
       default:

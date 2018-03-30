@@ -32,8 +32,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /**
 * @brief callback for the ask_password message
 */
-void moolticute_cb_ask_password(struct json_object *jObj)
+void moolticute_cb_ask_password(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) user;
   struct json_object *data;
   struct json_object *password;
   struct json_object *helper;
@@ -51,7 +52,7 @@ void moolticute_cb_ask_password(struct json_object *jObj)
       json_object_object_get_ex(data, "error_code", &code);
       json_object_object_get_ex(data, "error_message", &msg);
 
-      moolticute_error_add(&mContext, ASK_PASSWORD, json_object_get_int(code), json_object_get_string(msg));
+      moolticute_error_add(ctx, ASK_PASSWORD, json_object_get_int(code), json_object_get_string(msg));
     }
     return;
   }
@@ -62,7 +63,7 @@ void moolticute_cb_ask_password(struct json_object *jObj)
     return;
   }
   strcpy(value, json_object_get_string(password));
-  moolticute_value_add(&mContext, ASK_PASSWORD, (void *) value);
+  moolticute_value_add(ctx, ASK_PASSWORD, (void *) value);
 
 }
 
@@ -77,7 +78,7 @@ void moolticute_cb_ask_password(struct json_object *jObj)
 *
 * @return 0 - everything is fine, <0 ERROR Codes
 */
-int moolticute_request_password(const char *service, const char *login, char *password, int timeout)
+int moolticute_request_password(struct moolticute_ctx *ctx, const char *service, const char *login, char *password, int timeout)
 {
   const char *json_str;
   char *msg;
@@ -87,25 +88,25 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   int ret=0;
 
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  if (mContext.connected == 0)
+  pthread_mutex_lock(&ctx->write_mutex);
+  if (ctx->connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.info.status.connected == 0)
+  if (ctx->info.status.connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
-  if (mContext.info.status.locked == 1)
+  if (ctx->info.status.locked == 1)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_DEVICE_LOCKED;
   }
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   jObj = json_object_new_object();
   data = json_object_new_object();
@@ -121,18 +122,18 @@ int moolticute_request_password(const char *service, const char *login, char *pa
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  mContext.transmit_message=msg+LWS_PRE;
-  mContext.transmit_size=strlen(json_str);
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_lock(&ctx->write_mutex);
+  ctx->transmit_message=msg+LWS_PRE;
+  ctx->transmit_size=strlen(json_str);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   //register the callback
-  moolticute_register_cb("ask_password", &moolticute_cb_ask_password);
+  moolticute_register_cb(ctx, "ask_password", &moolticute_cb_ask_password);
 
   // send message to moolticuted
-  lws_callback_on_writable(mContext.wsi);
+  lws_callback_on_writable(ctx->wsi);
 
-  while(moolticute_error_search(&mContext, ASK_PASSWORD) == -1 && moolticute_value_search(&mContext, ASK_PASSWORD) == -1  && tout>0)
+  while(moolticute_error_search(ctx, ASK_PASSWORD) == -1 && moolticute_value_search(ctx, ASK_PASSWORD) == -1  && tout>0)
   {
     usleep(100);
     tout--;
@@ -143,33 +144,33 @@ int moolticute_request_password(const char *service, const char *login, char *pa
     return M_ERROR_TIMEOUT;
   }
 
-  ret=moolticute_error_search(&mContext, ASK_PASSWORD);
+  ret=moolticute_error_search(ctx, ASK_PASSWORD);
   if (ret > -1)
   {
-    if(strcmp(mContext.errors[ret]->error_msg,"credential access refused by user")==0)
+    if(strcmp(ctx->errors[ret]->error_msg,"credential access refused by user")==0)
     {
-      moolticute_delete_error(&mContext,ret);
+      moolticute_delete_error(ctx,ret);
       return M_ERROR_APPROVAL_REQUIRED;
     }
-    else if (strcmp(mContext.errors[ret]->error_msg,"failed to select context on device")==0)
+    else if (strcmp(ctx->errors[ret]->error_msg,"failed to select context on device")==0)
     {
-      moolticute_delete_error(&mContext,ret);
+      moolticute_delete_error(ctx,ret);
       return M_ERROR_PASSWORD_NOT_FOUND;
     }
     else
     {
-      moolticute_delete_error(&mContext,ret);
+      moolticute_delete_error(ctx,ret);
       return M_ERROR_UNKNOWN_ERROR;
     }
   }
 
-  ret=moolticute_value_search(&mContext, ASK_PASSWORD);
+  ret=moolticute_value_search(ctx, ASK_PASSWORD);
   if (ret == -1)
   {
     return M_ERROR_UNKNOWN_ERROR;
   }
 
-  strcpy(password,(char *) mContext.values[ret]->value);
-  moolticute_delete_value(&mContext, ret);
+  strcpy(password,(char *) ctx->values[ret]->value);
+  moolticute_delete_value(ctx, ret);
   return 0;
 }

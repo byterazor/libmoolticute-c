@@ -24,4 +24,4 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 
-void moolticute_cb_version_changed(struct json_object *jObj);
+void moolticute_cb_version_changed(void *user, struct json_object *jObj);

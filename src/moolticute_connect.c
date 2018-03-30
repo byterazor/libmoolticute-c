@@ -30,13 +30,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 void *websocket(void *data)
 {
-  while(mContext.finish == 0)
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) data;
+
+  while(ctx->finish == 0)
   {
-    lws_service( mContext.context, 250 );
+    lws_service( ctx->context, 250 );
   }
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.finished=1;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->finished=1;
+  pthread_mutex_unlock (&ctx->write_mutex);
   return NULL;
 }
 
@@ -49,27 +51,30 @@ enum moolticute_protocols
 
 /**
 * @brief connect to the moolticute daemon
+*
+* @param ctx - the context in which to connect
 * @return 0 = everyhting is fine || -1 not connected to daemon
 */
-int moolticute_connect()
+int moolticute_connect(struct moolticute_ctx *ctx)
 {
   struct lws_client_connect_info ccinfo;
   int timeout=(1e+6/100)*10;
   memset(&ccinfo,0,sizeof(ccinfo));
 
-  ccinfo.context = mContext.context;
+  ccinfo.context = ctx->context;
 	ccinfo.address = "localhost";
 	ccinfo.port = 30035;
 	ccinfo.path = "/";
-	ccinfo.host = lws_canonical_hostname( mContext.context );
+	ccinfo.host = lws_canonical_hostname( ctx->context );
 	ccinfo.origin = "origin";
 	ccinfo.protocol = protocols[PROTOCOL_MOOLTICUTE].name;
-  mContext.wsi=lws_client_connect_via_info(&ccinfo);
-  pthread_mutex_init (&mContext.write_mutex, NULL);
-  pthread_create(&mContext.thread, NULL, websocket, NULL);
+  ccinfo.userdata = (void *) ctx;
+  ctx->wsi=lws_client_connect_via_info(&ccinfo);
+  pthread_mutex_init (&ctx->write_mutex, NULL);
+  pthread_create(&ctx->thread, NULL, websocket, (void *) ctx);
 
   // wait until connection attempt has been made
-  while(mContext.connected==0 && timeout >0)
+  while(ctx->connected==0 && timeout >0)
   {
     usleep(10000);
     timeout--;

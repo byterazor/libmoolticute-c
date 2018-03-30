@@ -217,7 +217,7 @@ struct mooltipass_info
 struct moolticute_cb
 {
   char cmd[MOOLTICUTE_CMD_SIZE];
-  void (*cb)(struct json_object *jObj);
+  void (*cb)(void *user,struct json_object *jObj);
 };
 
 /**
@@ -239,6 +239,14 @@ struct moolticute_value
   void *value;
 };
 
+/**
+* @brief structure for managing memory allocation within the callback
+*/
+struct buffer
+{
+  unsigned int size;  /// number of the already allocated memory
+  char *buffer;       /// pointer to the allocated memory
+};
 
 /**
 * @brief context for connecting to the moolticuted service
@@ -250,6 +258,10 @@ struct moolticute_ctx
   struct lws *wsi;              /// libwebsockets connection
   pthread_t thread;             /// threat for managing data reception from websocket service
   pthread_mutex_t write_mutex;  /// mutex for controlling access to this structure from the writing phase
+
+  struct buffer cb_buffer;
+
+
 
   // callbacks
   struct moolticute_cb callbacks[MAX_CALLBACKS];
@@ -282,7 +294,7 @@ extern struct moolticute_ctx mContext;   /// only one multipass device is suppor
 * All internal functions
 */
 int callback_moolticute( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len );
-void moolticute_register_cb(const char *cmd, void (*cb)(struct json_object *jObj));
+void moolticute_register_cb(struct moolticute_ctx *ctx,const char *cmd, void (*cb)(void *user, struct json_object *jObj));
 
 /**
 * protocol structure required by libwebsockets
@@ -303,15 +315,15 @@ int mooltipass_delete_all_services(struct mooltipass_memory *memory);
 struct mooltipass_memory * mooltipass_new_memory();
 void mooltipass_free_memory(struct mooltipass_memory *memory);
 
-void moolticute_init_ctx();   /// initialize the context
-int  moolticute_connect();    /// connect to the moolticuted and fetch initial information
+struct moolticute_ctx  *moolticute_init_ctx();          /// initialize the context
+int  moolticute_connect(struct moolticute_ctx *ctx);    /// connect to the moolticuted and fetch initial information
 
 
-int moolticute_request_random_number(); /// request random numbers from mooltipass device
-int moolticute_request_device_uid(char key[32]);  /// request device uid from mooltipass device
-int moolticute_start_memory_management(int want_data, int wait); /// initiate memory management mode on the device
-int moolticute_stop_memory_management(int wait); /// stop memory management mode on the mooltipass device
-int moolticute_request_password(const char *service, const char *login, char *password, int timeout);
-int moolticute_get_application_id(char *name, char *version); /// request the application id from daemon
-int moolticute_cmd_service_exist(char *service, int data_node);
+int moolticute_request_random_number(struct moolticute_ctx *ctx, int *randomNumbers); /// request random numbers from mooltipass device
+int moolticute_request_device_uid(struct moolticute_ctx *ctx, char key[32]);  /// request device uid from mooltipass device
+int moolticute_start_memory_management(struct moolticute_ctx *ctx, int want_data, int wait); /// initiate memory management mode on the device
+int moolticute_stop_memory_management(struct moolticute_ctx *ctx, int wait); /// stop memory management mode on the mooltipass device
+int moolticute_request_password(struct moolticute_ctx *ctx, const char *service, const char *login, char *password, int timeout);
+int moolticute_get_application_id(struct moolticute_ctx *ctx, char *name, char *version); /// request the application id from daemon
+int moolticute_cmd_service_exist(struct moolticute_ctx *ctx, char *service, int data_node);
 #endif

@@ -25,16 +25,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../moolticute.h"
 
-void moolticute_cb_connect(struct json_object *jObj)
+void moolticute_cb_connect(void *user, struct json_object *jObj)
 {
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.info.status.connected=1;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  struct moolticute_ctx *ctx=(struct moolticute_ctx *) user;
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->info.status.connected=1;
+  pthread_mutex_unlock (&ctx->write_mutex);
 }
 
-void moolticute_cb_disconnect(struct json_object *jObj)
+void moolticute_cb_disconnect(void *user, struct json_object *jObj)
 {
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.info.status.connected=0;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  struct moolticute_ctx *ctx=(struct moolticute_ctx *) user;
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->info.status.connected=0;
+  pthread_mutex_unlock (&ctx->write_mutex);
 }

@@ -35,29 +35,29 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 * @return 0 - everything is fine, <0 ERROR Codes
 */
-int moolticute_get_application_id(char *name, char *version)
+int moolticute_get_application_id(struct moolticute_ctx *ctx, char *name, char *version)
 {
   const char *json_str;
   char *msg;
   struct json_object *jObj=json_object_new_object();
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  if (mContext.connected == 0)
+  pthread_mutex_lock(&ctx->write_mutex);
+  if (ctx->connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.info.status.connected == 0)
+  if (ctx->info.status.connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
 
-  if (strlen(mContext.app.name)== 0)
+  if (strlen(ctx->app.name)== 0)
   {
 
     json_object_object_add(jObj, "msg", json_object_new_string("get_application_id"));
@@ -68,23 +68,25 @@ int moolticute_get_application_id(char *name, char *version)
     msg=malloc(LWS_PRE+strlen(json_str)+1);
     strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
 
-    pthread_mutex_lock (&mContext.write_mutex);
-    mContext.transmit_message=msg+LWS_PRE;
-    mContext.transmit_size=strlen(json_str);
-    pthread_mutex_unlock (&mContext.write_mutex);
+    pthread_mutex_lock (&ctx->write_mutex);
+    ctx->transmit_message=msg+LWS_PRE;
+    ctx->transmit_size=strlen(json_str);
+    pthread_mutex_unlock (&ctx->write_mutex);
 
     // send message to moolticuted
-    lws_callback_on_writable(mContext.wsi);
-    while(strlen(mContext.app.name)==0 || strlen(mContext.app.version)==0)
+    lws_callback_on_writable(ctx->wsi);
+
+    //TODO: implement error management and timeout
+    while(strlen(ctx->app.name)==0 || strlen(ctx->app.version)==0)
     {
       usleep(100);
     }
   }
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  strncpy(name, mContext.app.name,200);
-  strncpy(version, mContext.app.version,200);
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_lock(&ctx->write_mutex);
+  strncpy(name, ctx->app.name,200);
+  strncpy(version, ctx->app.version,200);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   return 0;
 }

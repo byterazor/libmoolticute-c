@@ -24,4 +24,4 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 
-void moolticute_cb_memorymgmt_data(struct json_object *jObj);
+void moolticute_cb_memorymgmt_data(void *user, struct json_object *jObj);

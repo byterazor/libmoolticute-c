@@ -31,8 +31,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /**
 * @brief callback for the credential_exist/data_node_exist message
 */
-void moolticute_cb_credential_exist(struct json_object *jObj)
+void moolticute_cb_credential_exist(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) user;
   int i;
   struct json_object *data;
   struct json_object *value;
@@ -42,11 +43,11 @@ void moolticute_cb_credential_exist(struct json_object *jObj)
 
   if (strncmp(json_object_get_string(value),"true",4)==0)
   {
-    mContext.credential_exist=1;
+    ctx->credential_exist=1;
   }
   else
   {
-    mContext.credential_exist=0;
+    ctx->credential_exist=0;
   }
 }
 
@@ -59,32 +60,32 @@ void moolticute_cb_credential_exist(struct json_object *jObj)
 *
 * @return 0 - not found, 1 - exist, <0 ERROR Codes
 */
-int moolticute_cmd_service_exist(char *service, int data_node)
+int moolticute_cmd_service_exist(struct moolticute_ctx *ctx, char *service, int data_node)
 {
   const char *json_str;
   char *msg;
   struct json_object *jObj;
   struct json_object *data;
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  if (mContext.connected == 0)
+  pthread_mutex_lock(&ctx->write_mutex);
+  if (ctx->connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.info.status.connected == 0)
+  if (ctx->info.status.connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
-  if (mContext.info.status.card_inserted == 0)
+  if (ctx->info.status.card_inserted == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_CARD;
   }
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   jObj=json_object_new_object();
   data=json_object_new_object();
@@ -97,25 +98,25 @@ int moolticute_cmd_service_exist(char *service, int data_node)
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
 
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.transmit_message=msg+LWS_PRE;
-  mContext.transmit_size=strlen(json_str);
-  mContext.credential_exist=-1;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->transmit_message=msg+LWS_PRE;
+  ctx->transmit_size=strlen(json_str);
+  ctx->credential_exist=-1;
+  pthread_mutex_unlock (&ctx->write_mutex);
 
   //register the callback
-  moolticute_register_cb("credential_exists", &moolticute_cb_credential_exist);
-  moolticute_register_cb("data_node_exists", &moolticute_cb_credential_exist);
+  moolticute_register_cb(ctx, "credential_exists", &moolticute_cb_credential_exist);
+  moolticute_register_cb(ctx, "data_node_exists", &moolticute_cb_credential_exist);
 
 
   // send message to moolticuted
-  lws_callback_on_writable(mContext.wsi);
+  lws_callback_on_writable(ctx->wsi);
 
-  while(mContext.credential_exist==-1)
+  while(ctx->credential_exist==-1)
   {
     usleep(100);
   }
 
 
-  return mContext.credential_exist;
+  return ctx->credential_exist;
 }

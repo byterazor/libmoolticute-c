@@ -28,8 +28,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <json.h>
 #include <stdio.h>
 
-void moolticute_cb_failed_memorymgmt(struct json_object *jObj)
+void moolticute_cb_failed_memorymgmt(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) user;
   struct json_object *data;
   struct json_object *failed;
   struct json_object *code;
@@ -45,7 +46,7 @@ void moolticute_cb_failed_memorymgmt(struct json_object *jObj)
       json_object_object_get_ex(data, "error_code", &code);
       json_object_object_get_ex(data, "error_message", &msg);
 
-      moolticute_error_add(&mContext, START_MEMORYMGMT, json_object_get_int(code), json_object_get_string(msg));
+      moolticute_error_add(ctx, START_MEMORYMGMT, json_object_get_int(code), json_object_get_string(msg));
     }
     return;
   }

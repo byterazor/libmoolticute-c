@@ -41,7 +41,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 * @return 0 - everything is fine, <0 ERROR Codes
 */
-int moolticute_start_memory_management(int want_data, int wait)
+int moolticute_start_memory_management(struct moolticute_ctx *ctx, int want_data, int wait)
 {
   const char *json_str;
   char *msg;
@@ -49,26 +49,26 @@ int moolticute_start_memory_management(int want_data, int wait)
   struct json_object *jObj=json_object_new_object();
   int ret=0;
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  if (mContext.connected == 0)
+  pthread_mutex_lock(&ctx->write_mutex);
+  if (ctx->connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.info.status.connected == 0)
+  if (ctx->info.status.connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
 
-  if (mContext.info.status.locked == 1)
+  if (ctx->info.status.locked == 1)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_DEVICE_LOCKED;
   }
 
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   json_object_object_add(data, "want_data", json_object_new_string(want_data == 0 ? "false" : "true"));
   json_object_object_add(jObj, "msg", json_object_new_string("start_memorymgmt"));
@@ -80,26 +80,26 @@ int moolticute_start_memory_management(int want_data, int wait)
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   strncpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  mContext.transmit_message=msg+LWS_PRE;
-  mContext.transmit_size=strlen(json_str);
-  mContext.info.mm.updating=1;
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_lock(&ctx->write_mutex);
+  ctx->transmit_message=msg+LWS_PRE;
+  ctx->transmit_size=strlen(json_str);
+  ctx->info.mm.updating=1;
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   // send message to moolticuted
-  lws_callback_on_writable(mContext.wsi);
+  lws_callback_on_writable(ctx->wsi);
 
-  while((mContext.info.mm.updating==1 && moolticute_error_search(&mContext, START_MEMORYMGMT) == -1)  && wait == 1)
+  while((ctx->info.mm.updating==1 && moolticute_error_search(ctx, START_MEMORYMGMT) == -1)  && wait == 1)
   {
     usleep(100);
   }
 
-  ret=moolticute_error_search(&mContext, START_MEMORYMGMT);
+  ret=moolticute_error_search(ctx, START_MEMORYMGMT);
   if (ret > -1)
   {
-    printf("%d, %s\n", mContext.errors[ret]->error_code, mContext.errors[ret]->error_msg);
+    printf("%d, %s\n", ctx->errors[ret]->error_code, ctx->errors[ret]->error_msg);
 
-    if (mContext.errors[ret]->error_code == 0)
+    if (ctx->errors[ret]->error_code == 0)
     {
       return M_ERROR_APPROVAL_REQUIRED;
     }

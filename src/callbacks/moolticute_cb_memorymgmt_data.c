@@ -47,8 +47,9 @@ int mooltipass_penc_to_str(struct json_object *password_enc, char *password)
   return password_length;
 }
 
-void moolticute_cb_memorymgmt_data(struct json_object *jObj)
+void moolticute_cb_memorymgmt_data(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx = (struct moolticute_ctx *) user;
   struct json_object *data=NULL;
   struct json_object *login_data=NULL;
   struct json_object *service=NULL;
@@ -96,23 +97,23 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
   {
     return;
   }
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.info.mm.updating=1;
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->info.mm.updating=1;
 
-  if (mContext.info.memory != NULL)
+  if (ctx->info.memory != NULL)
   {
-    mooltipass_free_memory(mContext.info.memory);
-    mContext.info.memory=NULL;
+    mooltipass_free_memory(ctx->info.memory);
+    ctx->info.memory=NULL;
   }
 
-  mContext.info.memory=mooltipass_new_memory();
+  ctx->info.memory=mooltipass_new_memory();
 
   for(i=0; i<services; i++)
   {
     service = json_object_array_get_idx(login_data, i);
     json_object_object_get_ex(service, "service", &service_nameObj);
     service_name=json_object_get_string(service_nameObj);
-    mService=mooltipass_add_service(mContext.info.memory, service_name);
+    mService=mooltipass_add_service(ctx->info.memory, service_name);
 
     json_object_object_get_ex(service, "childs", &childrenObj);
     if(childrenObj != NULL)
@@ -150,6 +151,6 @@ void moolticute_cb_memorymgmt_data(struct json_object *jObj)
 
   }
 
-  mContext.info.mm.updating=0;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  ctx->info.mm.updating=0;
+  pthread_mutex_unlock (&ctx->write_mutex);
 }

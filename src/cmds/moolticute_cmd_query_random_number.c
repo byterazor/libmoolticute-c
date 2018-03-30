@@ -36,8 +36,9 @@ int mGotRandomNumbers;                    /// identifier signalling the RandomNu
 /**
 * @brief callback for the get_random_numbers message
 */
-void moolticute_cb_get_random_numbers(struct json_object *jObj)
+void moolticute_cb_get_random_numbers(void *user , struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx=(struct moolticute_ctx *) user;
   int i;
   struct json_object *data;
   struct json_object *value;
@@ -50,7 +51,7 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
     mRandomNumbers[i]=json_object_get_int(value);
   }
   mGotRandomNumbers=1;
-  mContext.ready=1;
+  ctx->ready=1;
 }
 
 /**
@@ -58,7 +59,7 @@ void moolticute_cb_get_random_numbers(struct json_object *jObj)
 * @param randomNumbers - array for the random numbers as call by reference, size MAX_RANDOM_NUMBERS = 32
 * @return 0 = everything ok, < 0 ERROR Codes according to moolticute.h
 */
-int moolticute_request_random_number(int *randomNumbers)
+int moolticute_request_random_number(struct moolticute_ctx *ctx, int *randomNumbers)
 {
   int i;
   int timeout=10000000;
@@ -66,38 +67,38 @@ int moolticute_request_random_number(int *randomNumbers)
   char *msg;
   struct json_object *jObj=json_object_new_object();
 
-  pthread_mutex_lock(&mContext.write_mutex);
-  if (mContext.connected==0)
+  pthread_mutex_lock(&ctx->write_mutex);
+  if (ctx->connected==0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NOT_CONNECTED;
   }
 
-  if (mContext.info.status.connected == 0)
+  if (ctx->info.status.connected == 0)
   {
-    pthread_mutex_unlock(&mContext.write_mutex);
+    pthread_mutex_unlock(&ctx->write_mutex);
     return M_ERROR_NO_MOOLTIPASS_DEVICE;
   }
-  pthread_mutex_unlock(&mContext.write_mutex);
+  pthread_mutex_unlock(&ctx->write_mutex);
 
   json_object_object_add(jObj, "msg", json_object_new_string("get_random_numbers"));
   json_str=json_object_to_json_string(jObj);
   msg=malloc(LWS_PRE+strlen(json_str)+1);
   memcpy(msg+LWS_PRE, json_str, strlen(json_str)+1);
 
-  pthread_mutex_lock (&mContext.write_mutex);
-  mContext.transmit_message=msg+LWS_PRE;
-  mContext.transmit_size=strlen(json_str);
-  pthread_mutex_unlock (&mContext.write_mutex);
+  pthread_mutex_lock (&ctx->write_mutex);
+  ctx->transmit_message=msg+LWS_PRE;
+  ctx->transmit_size=strlen(json_str);
+  pthread_mutex_unlock (&ctx->write_mutex);
 
   // blank random number array
   memset(mRandomNumbers,0,MAX_RANDOM_NUMBERS);
   mGotRandomNumbers=0;
 
   //register the callback
-  moolticute_register_cb("get_random_numbers", &moolticute_cb_get_random_numbers);
+  moolticute_register_cb(ctx, "get_random_numbers", &moolticute_cb_get_random_numbers);
 
-  lws_callback_on_writable(mContext.wsi);
+  lws_callback_on_writable(ctx->wsi);
 
   while(mGotRandomNumbers==0 && timeout >0)
   {

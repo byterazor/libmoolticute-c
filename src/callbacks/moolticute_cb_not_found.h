@@ -26,6 +26,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 
-void moolticute_cb_not_found(struct json_object *jObj);
+void moolticute_cb_not_found(void *user, struct json_object *jObj);
 
 #endif

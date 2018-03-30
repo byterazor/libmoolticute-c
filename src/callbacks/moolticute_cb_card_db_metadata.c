@@ -26,8 +26,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../moolticute.h"
 #include <json.h>
 
-void moolticute_cb_card_db_metadata(struct json_object *jObj)
+void moolticute_cb_card_db_metadata(void *user, struct json_object *jObj)
 {
+  struct moolticute_ctx *ctx=(struct moolticute_ctx *) user;
   struct json_object *data;
   struct json_object *cardIDobj;
   struct json_object *DbChangeNumberObj;
@@ -41,10 +42,10 @@ void moolticute_cb_card_db_metadata(struct json_object *jObj)
 
   cardID=json_object_get_string(cardIDobj);
 
-  pthread_mutex_lock (&mContext.write_mutex);
-  memcpy(mContext.info.card.id,cardID,64);
-  mContext.info.card.dataDbChangeNumber=json_object_get_int(DbChangeNumberObj);
-  mContext.info.card.credentialsDbChangeNumber=json_object_get_int(credentialsDbChangeNumberObj);
-  mContext.info.status.card_inserted=1;
-  pthread_mutex_unlock (&mContext.write_mutex);
+  pthread_mutex_lock (&ctx->write_mutex);
+  memcpy(ctx->info.card.id,cardID,64);
+  ctx->info.card.dataDbChangeNumber=json_object_get_int(DbChangeNumberObj);
+  ctx->info.card.credentialsDbChangeNumber=json_object_get_int(credentialsDbChangeNumberObj);
+  ctx->info.status.card_inserted=1;
+  pthread_mutex_unlock (&ctx->write_mutex);
 }
