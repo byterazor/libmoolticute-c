@@ -1,4 +1,5 @@
 libtoolize
 aclocal
 autoconf
-automake -a
+autoheader
+automake -a -c
