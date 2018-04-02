@@ -74,7 +74,8 @@ enum moolticute_message_types {
   PROGRESS_DETAILED,
   PROGRESS,
   START_MEMORYMGMT,
-  ASK_PASSWORD
+  ASK_PASSWORD,
+  CREDENTIAL_EXISTS
 };
 
 /**

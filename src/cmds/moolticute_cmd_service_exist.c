@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../moolticute.h"
 #include <json-c/json.h>
 #include <libwebsockets.h>
-
+#include "../moolticute_array.h"
 
 /**
 * @brief callback for the credential_exist/data_node_exist message
@@ -41,14 +41,22 @@ void moolticute_cb_credential_exist(void *user, struct json_object *jObj)
   json_object_object_get_ex(jObj, "data", &data);
   json_object_object_get_ex(data, "exists", &value);
 
+
+  int *v= (int*) calloc(sizeof(int),1);
+  if (v == NULL)
+  {
+    return;
+  }
+
   if (strncmp(json_object_get_string(value),"true",4)==0)
   {
-    ctx->credential_exist=1;
+    *v=1;
   }
   else
   {
-    ctx->credential_exist=0;
+    *v=0;
   }
+  moolticute_value_add(ctx, CREDENTIAL_EXISTS, (void *) v);
 }
 
 
@@ -66,6 +74,7 @@ int moolticute_cmd_service_exist(struct moolticute_ctx *ctx, char *service, int 
   char *msg;
   struct json_object *jObj;
   struct json_object *data;
+  int tout=2000000;
 
   pthread_mutex_lock(&ctx->write_mutex);
   if (ctx->connected == 0)
@@ -101,7 +110,6 @@ int moolticute_cmd_service_exist(struct moolticute_ctx *ctx, char *service, int 
   pthread_mutex_lock (&ctx->write_mutex);
   ctx->transmit_message=msg+LWS_PRE;
   ctx->transmit_size=strlen(json_str);
-  ctx->credential_exist=-1;
   pthread_mutex_unlock (&ctx->write_mutex);
 
   //register the callback
@@ -112,11 +120,32 @@ int moolticute_cmd_service_exist(struct moolticute_ctx *ctx, char *service, int 
   // send message to moolticuted
   lws_callback_on_writable(ctx->wsi);
 
-  while(ctx->credential_exist==-1)
+  while(moolticute_error_search(ctx, CREDENTIAL_EXISTS) == -1 && moolticute_value_search(ctx, CREDENTIAL_EXISTS) == -1  && tout>0)
   {
     usleep(100);
+    tout--;
   }
 
+  if (tout == 0)
+  {
+    return M_ERROR_TIMEOUT;
+  }
 
-  return ctx->credential_exist;
+  int ret=moolticute_error_search(ctx, CREDENTIAL_EXISTS);
+  if (ret > -1)
+  {
+    moolticute_delete_error(ctx,ret);
+    return M_ERROR_UNKNOWN_ERROR;
+  }
+
+  ret=moolticute_value_search(ctx, ASK_PASSWORD);
+  if (ret == -1)
+  {
+    moolticute_delete_value(ctx, ret);
+    return M_ERROR_UNKNOWN_ERROR;
+  }
+
+  int value = *(int*)ctx->values[ret]->value;
+  moolticute_delete_value(ctx, ret);
+  return value;
 }
