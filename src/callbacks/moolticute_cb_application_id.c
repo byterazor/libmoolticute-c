@@ -1,5 +1,5 @@
 #include "../moolticute.h"
-#include <json.h>
+#include <json-c/json.h>
 #include <stdio.h>
 
 /**

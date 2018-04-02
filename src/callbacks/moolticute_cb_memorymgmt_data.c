@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "../moolticute.h"
-#include <json.h>
+#include <json-c/json.h>
 
 int mooltipass_penc_to_str(struct json_object *password_enc, char *password)
 {

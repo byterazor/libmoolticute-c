@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 * All defines and structures can be found here
 */
-#include <json.h>
+#include <json-c/json.h>
 #include <libwebsockets.h>
 #include <pthread.h>
 

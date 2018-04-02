@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include "../moolticute.h"
 #include "../moolticute_array.h"
-#include <json.h>
+#include <json-c/json.h>
 #include <stdio.h>
 
 void moolticute_cb_failed_memorymgmt(void *user, struct json_object *jObj)

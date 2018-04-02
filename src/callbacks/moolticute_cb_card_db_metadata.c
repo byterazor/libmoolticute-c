@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
 #include "../moolticute.h"
-#include <json.h>
+#include <json-c/json.h>
 
 void moolticute_cb_card_db_metadata(void *user, struct json_object *jObj)
 {
