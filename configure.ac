@@ -15,7 +15,7 @@ AC_CONFIG_FILES([
 
 # Checks for programs.
 AC_PROG_CC
-
+CFLAGS=-Wall
 
 AC_SEARCH_LIBS([pthread_create], [pthread], [], [
   AC_MSG_ERROR([unable to find pthread library])
@@ -40,5 +40,27 @@ AC_TYPE_UINT32_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset strtol])
+
+
+AC_ARG_ENABLE(valgrind,
+	AC_HELP_STRING([--enable-valgrind],
+	[Run libmoolticute-c using valgrind]))
+
+AC_MSG_CHECKING([valgrind])
+valgrind_status="yes"
+
+AM_CONDITIONAL(WITH_VALGRIND, test "$enable_valgrind" = "run")
+
+# Build valgrind support into code
+if test "$enable_valgrind" = "yes"; then
+  CFLAGS="$CFLAGS -O0 -ggdb3"
+	AC_MSG_RESULT(yes)
+# No valgrind
+else
+	AC_MSG_RESULT(no)
+	valgrind_status="no"
+fi
+
+
 
 AC_OUTPUT
