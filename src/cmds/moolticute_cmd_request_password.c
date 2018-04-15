@@ -57,7 +57,7 @@ void moolticute_cb_ask_password(void *user, struct json_object *jObj)
     return;
   }
 
-  char *value=malloc(strlen(json_object_get_string(password)+1));
+  char *value= (char *) malloc(strlen(json_object_get_string(password))+1);
   if (value == NULL)
   {
     return;
